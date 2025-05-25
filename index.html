@@ -4,557 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQL Code Collector Game</title>
-    <style>
-        /* --- CSS Variables for easy theme changes --- */
-        :root {
-            --primary-color: #4CAF50; /* Green for main actions */
-            --primary-hover-color: #45a049;
-            --secondary-color: #2196F3; /* Blue for info/secondary actions */
-            --secondary-hover-color: #1976D2;
-            --danger-color: #f44336; /* Red for destructive actions */
-            --danger-hover-color: #d32f2f;
-            --background-color: #e0f2f7; /* Light blue-grey background */
-            --card-background: #ffffff;
-            --text-color: #333333;
-            --light-text-color: #757575;
-            --border-radius: 12px;
-            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            --xp-progress-color: #4CAF50;
-            --energy-color: #FFD700; /* Gold for energy */
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            box-sizing: border-box;
-            line-height: 1.6;
-        }
-
-        .game-container {
-            max-width: 650px; /* Slightly wider for more content */
-            width: 100%;
-            margin: 20px auto;
-            padding: 25px;
-            background-color: var(--card-background);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            animation: fadeIn 0.5s ease-out;
-            box-sizing: border-box;
-            position: relative; /* Для модальных окон */
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes foundItem {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .header-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap; /* Для мобильных */
-            margin-bottom: 20px;
-            font-size: 1.1em;
-            color: var(--light-text-color);
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        .header-left {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .header-right {
-            text-align: right;
-            margin-top: 10px; /* Для мобильных */
-            width: 100%;
-        }
-        @media (min-width: 480px) { /* Для десктопов выравниваем в строку */
-            .header-right {
-                width: auto;
-                margin-top: 0;
-            }
-        }
-
-        .header-info #experienceDisplay,
-        .header-info #levelDisplay {
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-        .header-info #energyDisplay {
-            font-weight: bold;
-            color: var(--energy-color);
-            margin-bottom: 5px;
-        }
-
-        .progress-bar-container {
-            background-color: #e0e0e0;
-            border-radius: 5px;
-            height: 8px;
-            margin-top: 5px;
-            overflow: hidden;
-            width: 150px; /* Фиксированная ширина */
-        }
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background-color: var(--xp-progress-color);
-            border-radius: 5px;
-            transition: width 0.3s ease-out;
-        }
-
-        .message {
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            font-weight: 500;
-            color: var(--text-color);
-            min-height: 30px; /* Чтобы не прыгало при смене текста */
-        }
-
-        .buttons-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Увеличил minmax */
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        button {
-            padding: 12px 18px;
-            font-size: 1em;
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            background-color: var(--primary-color);
-            color: white;
-            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-            font-weight: 600;
-        }
-        button:hover {
-            background-color: var(--primary-hover-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-        button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
-        .secondary-button {
-            background-color: var(--secondary-color);
-        }
-        .secondary-button:hover {
-            background-color: var(--secondary-hover-color);
-        }
-
-        .danger-button {
-            background-color: var(--danger-color);
-        }
-        .danger-button:hover {
-            background-color: var(--danger-hover-color);
-        }
-
-        /* General list item styling */
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            margin-bottom: 10px;
-            background-color: #f7f7f7;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            text-align: left;
-            flex-wrap: wrap;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            transition: background-color 0.2s ease;
-        }
-        .list-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        .list-item-main {
-            flex-grow: 1;
-            padding-right: 15px;
-            cursor: pointer;
-        }
-        .list-item-name {
-            font-weight: 600;
-            font-size: 1.05em;
-            color: var(--text-color);
-        }
-        .list-item-description {
-            font-size: 0.85em;
-            color: var(--light-text-color);
-            margin-top: 5px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-            opacity: 0;
-            width: 100%;
-            white-space: pre-wrap; /* Для отображения примеров кода с переносами */
-        }
-        .list-item-description.show {
-            max-height: 200px; /* Увеличил для примеров кода */
-            opacity: 1;
-        }
-
-        .item-action-button {
-            padding: 8px 12px;
-            font-size: 0.85em;
-            border-radius: 6px;
-            margin-left: 10px;
-            flex-shrink: 0;
-            box-shadow: none;
-        }
-        .item-action-button:hover {
-             transform: translateY(-1px);
-             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-        }
-
-        .buy-button { background-color: var(--secondary-color); }
-        .buy-button:hover { background-color: var(--secondary-hover-color); }
-        .sell-button { background-color: var(--danger-color); }
-        .sell-button:hover { background-color: var(--danger-hover-color); }
-
-        h3 {
-            color: var(--primary-color);
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.4em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        h4 {
-            color: var(--secondary-color);
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
-
-        #collectionHeader {
-            color: var(--secondary-color);
-            font-size: 1.2em;
-            font-weight: 600;
-        }
-
-        /* Achievements Panel */
-        #achievementsPanel, #dailyBonusPanel, #statsPanel, #marketPanel, #boostersPanel, #projectPanel, #historyPanel {
-            background-color: #f7f7f7;
-            padding: 15px;
-            border-radius: var(--border-radius);
-            margin-top: 20px;
-            text-align: left;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-        .achievement-item {
-            padding: 10px;
-            margin-bottom: 8px;
-            border-bottom: 1px dashed #eee;
-            color: var(--text-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .achievement-item:last-child {
-            border-bottom: none;
-        }
-        .achievement-item.completed {
-            color: var(--primary-color);
-            font-weight: 600;
-            background-color: #e8f5e9;
-            border-radius: 5px;
-        }
-        .achievement-item.completed span {
-            font-size: 1.2em;
-        }
-
-        /* Daily Bonus Panel */
-        #dailyBonusPanel h3 { color: #ff9800; }
-        #claimDailyBonusButton { background-color: #ffc107; color: #333; }
-        #claimDailyBonusButton:hover { background-color: #ffb300; }
-
-        /* Stats Panel */
-        #statsPanel p { margin: 5px 0; font-size: 0.95em; color: var(--light-text-color); }
-        #statsPanel strong { color: var(--text-color); }
-
-        /* Market Panel */
-        #marketPanel h3 { color: #8bc34a; }
-        .market-item .list-item-name { color: #8bc34a; } /* Color for rare functions */
-        .market-buy-button { background-color: #8bc34a; } /* Green for market buy */
-        .market-buy-button:hover { background-color: #7cb342; }
-
-        /* Boosters Panel */
-        #boostersPanel h3 { color: #9c27b0; }
-        .booster-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            margin-bottom: 10px;
-            background-color: #f3e5f5; /* Light purple */
-            border-radius: 8px;
-            border: 1px solid #e1bee7;
-        }
-        .booster-item button { background-color: #9c27b0; }
-        .booster-item button:hover { background-color: #7b1fa2; }
-
-        /* Project Panel */
-        #projectPanel h3 { color: #607d8b; } /* Blue-grey for projects */
-        .project-item {
-            border: 1px solid #b0bec5;
-            background-color: #eceff1;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            text-align: left;
-        }
-        .project-item.completed {
-            background-color: #dcedc8; /* Light green for completed */
-            border-color: #aed581;
-        }
-        .project-item strong {
-            color: #607d8b;
-        }
-        .project-item ul {
-            list-style: none;
-            padding-left: 0;
-            margin-top: 10px;
-        }
-        .project-item li {
-            margin-bottom: 5px;
-            color: #546e7a;
-        }
-        .project-item .requirement-met {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-        .project-action-button {
-            margin-top: 10px;
-            width: auto; /* Для кнопки "Завершить" */
-        }
-
-        /* History Panel */
-        #historyPanel h3 { color: #009688; }
-        .history-entry {
-            padding: 8px 0;
-            border-bottom: 1px dotted #e0e0e0;
-            font-size: 0.9em;
-            color: var(--light-text-color);
-        }
-        .history-entry:last-child { border-bottom: none; }
-
-        /* Version Info */
-        .version-info {
-            font-size: 0.75em;
-            color: #aaaaaa;
-            margin-top: 25px;
-        }
-
-        /* Modal for detailed info */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 100; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-            animation: fadeInModal 0.3s ease-out;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 10% auto; /* 10% from the top and centered */
-            padding: 25px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            width: 80%; /* Could be more responsive */
-            max-width: 500px;
-            position: relative;
-            animation: slideInModal 0.3s ease-out;
-            text-align: left;
-        }
-        @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideInModal { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            position: absolute;
-            top: 10px;
-            right: 20px;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: #333;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .modal-content h4 {
-            color: var(--primary-color);
-            margin-top: 0;
-            font-size: 1.5em;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-        }
-        .modal-content p {
-            margin-bottom: 10px;
-        }
-        .modal-content strong {
-            color: var(--text-color);
-        }
-        .modal-content pre {
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            overflow-x: auto;
-            white-space: pre-wrap; /* Для переноса длинных строк */
-            word-break: break-all; /* Для предотвращения выхода за границы */
-            font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="game-container">
         <div class="header-info">
             <div class="header-left">
-                <span id="experienceDisplay">Опыт: 0 🌟</span>
-                <span id="levelDisplay">Уровень: 1 (0/100 XP)</span>
+                <span id="experienceDisplay"><span class="emoji">🌟</span> Опыт: 0</span>
+                <span id="levelDisplay"><span class="emoji">⬆️</span> Уровень: 1 (0/100 XP)</span>
                 <div class="progress-bar-container">
                     <div id="levelProgressBar" class="progress-bar"></div>
                 </div>
             </div>
             <div class="header-right">
-                <span id="energyDisplay">Энергия: 10/10 ⚡️</span>
-                <p class="message" id="gameMessage">Добро пожаловать в игру "Сборщик SQL-функций"! 🚀</p>
+                <span id="energyDisplay"><span class="emoji">⚡️</span> Энергия: 10/10</span>
             </div>
         </div>
 
+        <p class="message" id="gameMessage">Добро пожаловать в игру "Сборщик SQL-функций"! 🚀</p>
+
         <div class="buttons-container" id="mainButtons">
-            <button id="collectButton">Найти SQL-функцию 🔍 (1 ⚡️)</button>
-            <button id="viewCollectionButton" class="secondary-button">Моя коллекция SQL 🎒</button>
-            <button id="shopButton" class="secondary-button">Магазин 💰</button>
-            <button id="dailyBonusButton" class="secondary-button">Ежедневный бонус 🎁</button>
-            <button id="achievementsButton" class="secondary-button">Достижения 🏆</button>
-            <button id="statsButton" class="secondary-button">Статистика 📈</button>
-            <button id="projectBoardButton" class="secondary-button">Доска Проектов 📋</button>
-            <button id="boostersButton" class="secondary-button">Бустеры 🚀</button>
-            <button id="historyButton" class="secondary-button">История 📜</button>
+            <button id="collectButton">Найти SQL-функцию <span class="emoji">🔍</span> (1 <span class="emoji">⚡️</span>)</button>
+            <button id="viewCollectionButton" class="secondary-button">Моя коллекция <span class="emoji">🎒</span></button>
+            <button id="shopButton" class="secondary-button">Магазин <span class="emoji">💰</span></button>
+            <button id="dailyBonusButton" class="secondary-button">Ежедневный бонус <span class="emoji">🎁</span></button>
+            <button id="achievementsButton" class="secondary-button">Достижения <span class="emoji">🏆</span></button>
+            <button id="statsButton" class="secondary-button">Статистика <span class="emoji">📈</span></button>
+            <button id="projectBoardButton" class="secondary-button">Доска Проектов <span class="emoji">📋</span></button>
+            <button id="boostersButton" class="secondary-button">Бустеры <span class="emoji">🚀</span></button>
+            <button id="marketButton" class="secondary-button">Рынок <span class="emoji">💎</span></button>
+            <button id="historyButton" class="secondary-button">История <span class="emoji">📜</span></button>
+            <button id="createButton" class="secondary-button">Создать запрос <span class="emoji">🛠️</span></button>
         </div>
 
-        <div id="collectionDisplay" style="display: none; margin-top: 20px;">
+        <div id="collectionDisplay" class="panel" style="display: none;">
             <h3 id="collectionHeader">Моя коллекция SQL: (0/55)</h3>
             <div id="collectionList">
                 <p>Пока ничего нет...</p>
             </div>
-            <button id="backFromCollection" class="secondary-button">Назад</button>
+            <button id="backFromCollection" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
-        <div id="createPanel" style="display: none; margin-top: 20px;">
+        <div id="createPanel" class="panel" style="display: none;">
             <h3>Создание SQL-запроса:</h3>
             <div id="availableParts">
                 <p>Здесь вы сможете объединять функции для создания более сложных запросов! (В разработке)</p>
             </div>
-            <button id="backFromCreate" class="secondary-button">Назад</button>
+            <button id="backFromCreate" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
-        <div id="shopPanel" style="display: none; margin-top: 20px;">
+        <div id="shopPanel" class="panel" style="display: none;">
             <h3>Магазин SQL-функций:</h3>
             <div id="buyableItemsList">
                 <p>Все функции собраны!</p>
             </div>
-            <button id="backFromShop" class="secondary-button">Назад</button>
+            <button id="backFromShop" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
-        <div id="marketPanel" style="display: none; margin-top: 20px;">
+        <div id="marketPanel" class="panel" style="display: none;">
             <h3>Рынок Редких Функций:</h3>
             <p>Здесь вы можете купить редкие функции, которые сложно найти обычным поиском.</p>
             <div id="marketItemsList">
                 <p>На рынке пока нет редких функций.</p>
             </div>
-            <button id="backFromMarket" class="secondary-button">Назад</button>
+            <button id="backFromMarket" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
-        <div id="dailyBonusPanel" style="display: none; margin-top: 20px;">
-            <h3>Ежедневный бонус!</h3>
+        <div id="dailyBonusPanel" class="panel" style="display: none;">
+            <h3>Ежедневный бонус! <span class="emoji">🎁</span></h3>
             <p id="dailyBonusMessage">Заберите свой бонус!</p>
-            <button id="claimDailyBonusButton" class="secondary-button">Забрать бонус (5 🌟)</button>
+            <button id="claimDailyBonusButton">Забрать бонус (5 <span class="emoji">🌟</span>)</button>
             <button id="backFromDailyBonus" class="secondary-button" style="margin-top: 10px;">Назад</button>
         </div>
 
-        <div id="achievementsPanel" style="display: none; margin-top: 20px;">
-            <h3>Ваши Достижения</h3>
+        <div id="achievementsPanel" class="panel" style="display: none;">
+            <h3>Ваши Достижения <span class="emoji">🏆</span></h3>
             <div id="achievementsList">
                 </div>
-            <button id="backFromAchievements" class="secondary-button">Назад</button>
+            <button id="backFromAchievements" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
-        <div id="statsPanel" style="display: none; margin-top: 20px;">
-            <h3>Статистика</h3>
+        <div id="statsPanel" class="panel" style="display: none;">
+            <h3>Статистика <span class="emoji">📈</span></h3>
             <p>Уникальных функций найдено: <strong id="statsUniqueCount">0</strong></p>
             <p>Всего функций (включая дубликаты): <strong id="statsTotalCount">0</strong></p>
             <p>Опыта заработано: <strong id="statsExperienceEarned">0</strong></p>
             <p>Функций продано: <strong id="statsPartsSold">0</strong></p>
             <p>Функций куплено: <strong id="statsPartsBought">0</strong></p>
-            <button id="backFromStats" class="secondary-button">Назад</button>
+            <button id="backFromStats" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
-        <div id="projectPanel" style="display: none; margin-top: 20px;">
-            <h3>Доска Проектов</h3>
+        <div id="projectPanel" class="panel" style="display: none;">
+            <h3>Доска Проектов <span class="emoji">📋</span></h3>
             <p>Выполняйте проекты, собирая необходимые SQL-функции, чтобы заработать большие награды!</p>
             <div id="projectList">
                 <p>Нет доступных проектов.</p>
             </div>
-            <button id="backFromProjectBoard" class="secondary-button">Назад</button>
+            <button id="backFromProjectBoard" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
-        <div id="boostersPanel" style="display: none; margin-top: 20px;">
-            <h3>Бустеры и Улучшения</h3>
+        <div id="boostersPanel" class="panel" style="display: none;">
+            <h3>Бустеры и Улучшения <span class="emoji">🚀</span></h3>
             <p>Улучшите свой прогресс! (Длительность бустеров 5 минут)</p>
             <div id="boosterList">
                 </div>
-            <button id="backFromBoosters" class="secondary-button">Назад</button>
+            <button id="backFromBoosters" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
-        <div id="historyPanel" style="display: none; margin-top: 20px;">
-            <h3>История Действий</h3>
+        <div id="historyPanel" class="panel" style="display: none;">
+            <h3>История Действий <span class="emoji">📜</span></h3>
             <div id="historyLog">
                 <p>Ваша история действий пуста.</p>
             </div>
-            <button id="backFromHistory" class="secondary-button">Назад</button>
+            <button id="backFromHistory" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
 
-        <button id="resetGameButton" class="danger-button" style="margin-top: 25px;">Начать игру заново (удалить все данные)</button>
-    </div> <div class="version-info">
-        Версия: <span id="gameVersion">0.5.0</span>
+        <button id="resetGameButton" class="danger-button" style="margin-top: 30px;">Начать игру заново (удалить все данные) <span class="emoji">💥</span></button>
     </div>
 
     <div id="partDetailModal" class="modal">
@@ -564,12 +131,17 @@
             <p><strong>Описание:</strong> <span id="modalPartDescription"></span></p>
             <p><strong>Тип:</strong> <span id="modalPartType"></span></p>
             <p><strong>Пример:</strong></p>
-            <pre id="modalPartExample"><code></code></pre>
+            <pre><code id="modalPartExample"></code></pre>
             <p><strong>Количество в коллекции:</strong> <span id="modalPartCount"></span></p>
-            <button id="modalSellButton" class="item-action-button sell-button" style="display:none;">Продать (1 🌟)</button>
+            <div class="modal-buttons">
+                 <button id="modalSellButton" class="item-action-button sell-button" style="display:none;">Продать (1 <span class="emoji">🌟</span>)</button>
+            </div>
         </div>
     </div>
 
+    <div class="version-info">
+        Версия: <span id="gameVersion">0.6.0</span>
+    </div>
 
     <script src="game_data.js"></script>
 
@@ -590,18 +162,19 @@
             maxEnergy: 10,
             energyRecoveryRate: 1, // 1 энергия в 1 минуту
             lastEnergyRecovery: Date.now(),
-            activeBoosters: [], // [{id: 'xp_boost', endsAt: timestamp}]
+            activeBoosters: [], // [{id: 'xp_boost', endsAt: timestamp, effect: {type: 'xp_multiplier', value: 2}}]
             history: [], // [{timestamp: Date.now(), message: "Найдена функция X"}]
             achievements: { // Новая структура для достижений
-                collect_5_unique: { completed: false, reward: 10 },
-                collect_10_unique: { completed: false, reward: 20 },
-                collect_20_unique: { completed: false, reward: 40 },
-                collect_all_unique: { completed: false, reward: 100 }, // Новое
-                earn_50_xp: { completed: false, reward: 15 },
-                earn_200_xp: { completed: false, reward: 50 }, // Новое
-                sell_5_parts: { completed: false, reward: 10 },
-                buy_5_parts: { completed: false, reward: 10 }, // Новое
-                complete_1_project: { completed: false, reward: 25 }, // Новое
+                collect_5_unique: { completed: false, reward: 10, name: 'Первооткрыватель', description: 'Собрать 5 уникальных SQL-функций' },
+                collect_10_unique: { completed: false, reward: 20, name: 'Юный Базист', description: 'Собрать 10 уникальных SQL-функций' },
+                collect_20_unique: { completed: false, reward: 40, name: 'Мастер Запросов', description: 'Собрать 20 уникальных SQL-функций' },
+                collect_all_unique: { completed: false, reward: 100, name: 'Великий Сборщик', description: 'Собрать все уникальные SQL-функции' },
+                earn_50_xp: { completed: false, reward: 15, name: 'Опытный Кодер', description: 'Заработать 50 опыта' },
+                earn_200_xp: { completed: false, reward: 50, name: 'Гуру SQL', description: 'Заработать 200 опыта' },
+                sell_5_parts: { completed: false, reward: 10, name: 'Торговец Данными', description: 'Продать 5 SQL-функций' },
+                buy_5_parts: { completed: false, reward: 10, name: 'Опытный Покупатель', description: 'Купить 5 SQL-функций' },
+                complete_1_project: { completed: false, reward: 25, name: 'Первый Проект', description: 'Завершить 1 проект' },
+                complete_3_projects: { completed: false, reward: 50, name: 'Архитектор Баз Данных', description: 'Завершить 3 проекта' },
             },
             projects: [ // Фиксированные проекты
                 { id: 'proj_basic_select', name: 'Базовая выборка данных', description: 'Извлечь все данные из таблицы Customers.', requirements: ['sql_select', 'sql_from'], completed: false, reward_xp: 20 },
@@ -609,7 +182,7 @@
                 { id: 'proj_insert_data', name: 'Вставка новой записи', description: 'Добавить нового пользователя в таблицу.', requirements: ['sql_insert_into', 'sql_values'], completed: false, reward_xp: 25 },
                 { id: 'proj_update_record', name: 'Обновление записи', description: 'Изменить данные существующей записи.', requirements: ['sql_update', 'sql_set', 'sql_where'], completed: false, reward_xp: 30 },
                 { id: 'proj_delete_record', name: 'Удаление записи', description: 'Удалить запись из таблицы.', requirements: ['sql_delete_from', 'sql_where'], completed: false, reward_xp: 20 },
-                { id: 'proj_table_join', name: 'Объединение таблиц', description: 'Соединить данные из Customers и Orders.', requirements: ['sql_select', 'sql_from', 'sql_join', 'sql_on'], completed: false, reward_xp: 50 },
+                { id: 'proj_table_join', name: 'Объединение таблиц', description: 'Соединить данные из Customers и Orders.', requirements: ['sql_select', 'sql_from', 'sql_join'], completed: false, reward_xp: 50 },
                 { id: 'proj_create_simple_table', name: 'Создание простой таблицы', description: 'Создать таблицу с ID и именем.', requirements: ['sql_create_table', 'sql_int', 'sql_varchar'], completed: false, reward_xp: 40 },
                 { id: 'proj_count_records', name: 'Подсчет записей', description: 'Посчитать количество записей в таблице.', requirements: ['sql_select', 'sql_count', 'sql_from'], completed: false, reward_xp: 20 },
                 { id: 'proj_aggregate_data', name: 'Агрегация данных', description: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
@@ -628,11 +201,11 @@
 
         // Типы редкости (для рынка и бустеров)
         const RARITIES = {
-            common: { chance: 0.5, price: 1 },
-            uncommon: { chance: 0.3, price: 3 },
-            rare: { chance: 0.15, price: 5 },
-            epic: { chance: 0.04, price: 10 },
-            legendary: { chance: 0.01, price: 20 }
+            common: { chance: 0.5, price: 1, name: 'Обычная' },
+            uncommon: { chance: 0.3, price: 3, name: 'Необычная' },
+            rare: { chance: 0.15, price: 5, name: 'Редкая' },
+            epic: { chance: 0.04, price: 10, name: 'Эпическая' },
+            legendary: { chance: 0.01, price: 20, name: 'Легендарная' }
         };
 
         // Бустеры
@@ -651,6 +224,7 @@
         const energyDisplay = document.getElementById('energyDisplay');
         const mainButtonsContainer = document.getElementById('mainButtons');
 
+        // Кнопки основного меню
         const collectButton = document.getElementById('collectButton');
         const viewCollectionButton = document.getElementById('viewCollectionButton');
         const createButton = document.getElementById('createButton');
@@ -658,26 +232,27 @@
         const dailyBonusButton = document.getElementById('dailyBonusButton');
         const achievementsButton = document.getElementById('achievementsButton');
         const statsButton = document.getElementById('statsButton');
-        const projectBoardButton = document.getElementById('projectBoardButton'); // New
-        const boostersButton = document.getElementById('boostersButton'); // New
-        const historyButton = document.getElementById('historyButton'); // New
+        const projectBoardButton = document.getElementById('projectBoardButton');
+        const boostersButton = document.getElementById('boostersButton');
+        const marketButton = document.getElementById('marketButton'); // Убедитесь, что эта кнопка есть в HTML
+        const historyButton = document.getElementById('historyButton');
 
+        // Панели
         const collectionDisplay = document.getElementById('collectionDisplay');
         const collectionHeader = document.getElementById('collectionHeader');
         const collectionList = document.getElementById('collectionList');
         const backFromCollectionButton = document.getElementById('backFromCollection');
 
         const createPanel = document.getElementById('createPanel');
-        const availablePartsDiv = document.getElementById('availableParts');
         const backFromCreateButton = document.getElementById('backFromCreate');
 
         const shopPanel = document.getElementById('shopPanel');
         const buyableItemsList = document.getElementById('buyableItemsList');
         const backFromShopButton = document.getElementById('backFromShop');
 
-        const marketPanel = document.getElementById('marketPanel'); // New
-        const marketItemsList = document.getElementById('marketItemsList'); // New
-        const backFromMarketButton = document.getElementById('backFromMarket'); // New
+        const marketPanel = document.getElementById('marketPanel');
+        const marketItemsList = document.getElementById('marketItemsList');
+        const backFromMarketButton = document.getElementById('backFromMarket');
 
         const dailyBonusPanel = document.getElementById('dailyBonusPanel');
         const dailyBonusMessage = document.getElementById('dailyBonusMessage');
@@ -696,17 +271,17 @@
         const statsPartsBought = document.getElementById('statsPartsBought');
         const backFromStatsButton = document.getElementById('backFromStats');
 
-        const projectPanel = document.getElementById('projectPanel'); // New
-        const projectList = document.getElementById('projectList'); // New
-        const backFromProjectBoardButton = document.getElementById('backFromProjectBoard'); // New
+        const projectPanel = document.getElementById('projectPanel');
+        const projectList = document.getElementById('projectList');
+        const backFromProjectBoardButton = document.getElementById('backFromProjectBoard');
 
-        const boostersPanel = document.getElementById('boostersPanel'); // New
-        const boosterList = document.getElementById('boosterList'); // New
-        const backFromBoostersButton = document.getElementById('backFromBoosters'); // New
+        const boostersPanel = document.getElementById('boostersPanel');
+        const boosterList = document.getElementById('boosterList');
+        const backFromBoostersButton = document.getElementById('backFromBoosters');
 
-        const historyPanel = document.getElementById('historyPanel'); // New
-        const historyLog = document.getElementById('historyLog'); // New
-        const backFromHistoryButton = document.getElementById('backFromHistory'); // New
+        const historyPanel = document.getElementById('historyPanel');
+        const historyLog = document.getElementById('historyLog');
+        const backFromHistoryButton = document.getElementById('backFromHistory');
 
         const resetGameButton = document.getElementById('resetGameButton');
 
@@ -718,7 +293,7 @@
         const modalPartType = document.getElementById('modalPartType');
         const modalPartExample = document.getElementById('modalPartExample');
         const modalPartCount = document.getElementById('modalPartCount');
-        const modalSellButton = document.getElementById('modalSellButton'); // Продать из модалки
+        const modalSellButton = document.getElementById('modalSellButton');
 
 
         // --- Инициализация Telegram Web App SDK ---
@@ -727,35 +302,35 @@
             Telegram.WebApp.expand();
             console.log('Telegram WebApp initialized.');
         } else {
-            console.warn('Telegram WebApp script not loaded or not in Telegram environment.');
+            console.warn('Telegram WebApp script not loaded or not in Telegram environment. Running in standalone mode.');
         }
 
         // --- Управление UI и состояниями ---
         function updateUI() {
             // Общие элементы
             gameMessageElement.textContent = gameData.message;
-            experienceDisplay.textContent = `Опыт: ${gameData.experience} 🌟`;
-            levelDisplay.textContent = `Уровень: ${gameData.level} (${gameData.currentXp}/${gameData.xpToNextLevel} XP)`;
+            experienceDisplay.innerHTML = `<span class="emoji">🌟</span> Опыт: ${gameData.experience}`;
+            levelDisplay.innerHTML = `<span class="emoji">⬆️</span> Уровень: ${gameData.level} (${gameData.currentXp}/${gameData.xpToNextLevel} XP)`;
             const progressPercentage = (gameData.currentXp / gameData.xpToNextLevel) * 100;
             levelProgressBar.style.width = `${progressPercentage}%`;
 
             // Энергия
             updateEnergy(); // Обновляем энергию перед отображением
-            energyDisplay.textContent = `Энергия: ${gameData.energy}/${gameData.maxEnergy} ⚡️`;
+            energyDisplay.innerHTML = `<span class="emoji">⚡️</span> Энергия: ${gameData.energy}/${gameData.maxEnergy}`;
 
             // Скрываем все панели
             const allPanels = [
                 mainButtonsContainer, collectionDisplay, createPanel, shopPanel,
                 dailyBonusPanel, achievementsPanel, statsPanel, projectPanel,
-                boostersPanel, historyPanel, marketPanel, resetGameButton
+                boostersPanel, historyPanel, marketPanel
             ];
             allPanels.forEach(panel => panel.style.display = 'none');
+            resetGameButton.style.display = 'block'; // Кнопка сброса всегда видна
 
             // Показываем нужную панель в зависимости от текущего вида
             switch (gameData.currentView) {
                 case 'main':
                     mainButtonsContainer.style.display = 'grid';
-                    resetGameButton.style.display = 'block';
                     checkDailyBonusAvailability();
                     break;
                 case 'collection':
@@ -764,13 +339,13 @@
                     break;
                 case 'create':
                     createPanel.style.display = 'block';
-                    renderCreatePanel();
+                    // renderCreatePanel(); // Пока заглушка
                     break;
                 case 'shop':
                     shopPanel.style.display = 'block';
                     renderShopItems();
                     break;
-                case 'market': // New
+                case 'market':
                     marketPanel.style.display = 'block';
                     renderMarketItems();
                     break;
@@ -786,15 +361,15 @@
                     statsPanel.style.display = 'block';
                     renderStats();
                     break;
-                case 'projects': // New
+                case 'projects':
                     projectPanel.style.display = 'block';
                     renderProjects();
                     break;
-                case 'boosters': // New
+                case 'boosters':
                     boostersPanel.style.display = 'block';
                     renderBoosters();
                     break;
-                case 'history': // New
+                case 'history':
                     historyPanel.style.display = 'block';
                     renderHistory();
                     break;
@@ -821,34 +396,16 @@
                     div.className = 'list-item';
                     div.innerHTML = `
                         <div class="list-item-main">
-                            <span class="list-item-name">${item.emoji} ${item.name} (x${item.count})</span>
-                            <div class="list-item-description">
-                                ${item.description}
-                                ${item.example ? `<br><br><strong>Пример:</strong><pre><code>${item.example}</code></pre>` : ''}
-                            </div>
+                            <span class="list-item-name"><span class="emoji">${item.emoji}</span> ${item.name} (x${item.count})</span>
                         </div>
-                        <button class="item-action-button sell-button" data-item-id="${item.id}">Продать (${PART_PRICE} 🌟)</button>
                     `;
-                    // Event listener for opening modal/expanding description
-                    const mainContent = div.querySelector('.list-item-main');
-                    mainContent.onclick = (event) => {
-                         // Проверяем, был ли клик именно по кнопке "Продать" внутри item-main
-                        if (event.target.closest('.item-action-button')) {
-                            return; // Если да, не открываем модалку
-                        }
-                        showPartDetails(item.id);
-                    };
-
-                    div.querySelector('.sell-button').onclick = (event) => {
-                        event.stopPropagation(); // Prevent modal from opening
-                        sellPart(item.id);
-                    };
+                    div.onclick = () => showPartDetails(item.id, 'collection');
                     collectionList.appendChild(div);
                 });
             }
         }
 
-        function showPartDetails(partId) {
+        function showPartDetails(partId, sourcePanel) {
             const part = ALL_CODE_PARTS.find(p => p.id === partId);
             const collectedPart = gameData.collection.find(item => item.id === partId);
 
@@ -856,10 +413,11 @@
                 modalPartName.textContent = `${part.emoji} ${part.name}`;
                 modalPartDescription.textContent = part.description;
                 modalPartType.textContent = part.type;
-                modalPartExample.querySelector('code').textContent = part.example || 'Пример недоступен.';
+                modalPartExample.textContent = part.example || 'Пример недоступен.';
                 modalPartCount.textContent = collectedPart ? collectedPart.count : 0;
 
-                if (collectedPart && collectedPart.count > 0) {
+                // Скрываем или показываем кнопку "Продать" в зависимости от контекста и наличия
+                if (sourcePanel === 'collection' && collectedPart && collectedPart.count > 0) {
                     modalSellButton.style.display = 'block';
                     // Удаляем предыдущие обработчики, чтобы избежать дублирования
                     const oldSellButton = modalSellButton.cloneNode(true);
@@ -874,7 +432,7 @@
                     modalSellButton.style.display = 'none';
                 }
 
-                partDetailModal.style.display = 'block';
+                partDetailModal.style.display = 'flex'; // Use flex to center
             }
         }
 
@@ -889,13 +447,8 @@
         };
 
 
-        function renderCreatePanel() {
-            availablePartsDiv.innerHTML = '<p>Здесь вы сможете объединять функции для создания более сложных запросов! (В разработке)</p>';
-        }
-
         function renderShopItems() {
             const buyableParts = ALL_CODE_PARTS.filter(part => {
-                // Если функция уже есть в коллекции, не показываем ее в магазине для покупки
                 return !gameData.collection.some(item => item.id === part.id);
             });
 
@@ -910,13 +463,9 @@
                     div.className = 'list-item';
                     div.innerHTML = `
                         <div class="list-item-main">
-                            <span class="list-item-name">${item.emoji} ${item.name}</span>
-                            <div class="list-item-description">
-                                ${item.description}
-                                ${item.example ? `<br><br><strong>Пример:</strong><pre><code>${item.example}</code></pre>` : ''}
-                            </div>
+                            <span class="list-item-name"><span class="emoji">${item.emoji}</span> ${item.name}</span>
                         </div>
-                        <button class="item-action-button buy-button" data-item-id="${item.id}">Купить (${PART_PRICE} 🌟)</button>
+                        <button class="item-action-button buy-button" data-item-id="${item.id}">Купить (${PART_PRICE} <span class="emoji">🌟</span>)</button>
                     `;
                     const buyButton = div.querySelector('.buy-button');
                     buyButton.disabled = gameData.experience < PART_PRICE;
@@ -924,21 +473,15 @@
                         event.stopPropagation();
                         buyPart(item.id);
                     };
-                    div.querySelector('.list-item-main').onclick = () => {
-                        const descElement = div.querySelector('.list-item-description');
-                        if (descElement) {
-                            descElement.classList.toggle('show');
-                        }
-                    };
+                    div.querySelector('.list-item-main').onclick = () => showPartDetails(item.id, 'shop');
                     buyableItemsList.appendChild(div);
                 });
             }
         }
 
         function renderMarketItems() {
-            // Находим все функции, которые имеют rarity и которых нет в коллекции игрока
             const rareParts = ALL_CODE_PARTS.filter(part =>
-                part.rarity && part.rarity !== 'common' && // Исключаем common
+                part.rarity && part.rarity !== 'common' &&
                 !gameData.collection.some(item => item.id === part.id)
             );
 
@@ -950,19 +493,15 @@
 
                 sortedRareParts.forEach(item => {
                     const rarityInfo = RARITIES[item.rarity] || { price: 1, chance: 0 };
-                    const marketPrice = rarityInfo.price; // Цена зависит от редкости
+                    const marketPrice = rarityInfo.price;
 
                     const div = document.createElement('div');
                     div.className = 'list-item';
                     div.innerHTML = `
                         <div class="list-item-main">
-                            <span class="list-item-name">${item.emoji} ${item.name} (Редкость: ${item.rarity})</span>
-                            <div class="list-item-description">
-                                ${item.description}
-                                ${item.example ? `<br><br><strong>Пример:</strong><pre><code>${item.example}</code></pre>` : ''}
-                            </div>
+                            <span class="list-item-name"><span class="emoji">${item.emoji}</span> ${item.name} (${RARITIES[item.rarity].name})</span>
                         </div>
-                        <button class="item-action-button market-buy-button" data-item-id="${item.id}">Купить (${marketPrice} 🌟)</button>
+                        <button class="item-action-button market-buy-button" data-item-id="${item.id}">Купить (${marketPrice} <span class="emoji">🌟</span>)</button>
                     `;
                     const buyButton = div.querySelector('.market-buy-button');
                     buyButton.disabled = gameData.experience < marketPrice;
@@ -970,12 +509,7 @@
                         event.stopPropagation();
                         buyPartFromMarket(item.id, marketPrice);
                     };
-                     div.querySelector('.list-item-main').onclick = () => {
-                        const descElement = div.querySelector('.list-item-description');
-                        if (descElement) {
-                            descElement.classList.toggle('show');
-                        }
-                    };
+                    div.querySelector('.list-item-main').onclick = () => showPartDetails(item.id, 'market');
                     marketItemsList.appendChild(div);
                 });
             }
@@ -983,20 +517,10 @@
 
         function renderAchievements() {
             achievementsList.innerHTML = '';
-            const allAchievements = [
-                { id: 'collect_5_unique', name: 'Первооткрыватель', description: 'Собрать 5 уникальных SQL-функций', threshold: 5, type: 'unique_parts' },
-                { id: 'collect_10_unique', name: 'Юный Базист', description: 'Собрать 10 уникальных SQL-функций', threshold: 10, type: 'unique_parts' },
-                { id: 'collect_20_unique', name: 'Мастер Запросов', description: 'Собрать 20 уникальных SQL-функций', threshold: 20, type: 'unique_parts' },
-                { id: 'collect_all_unique', name: 'Великий Сборщик', description: `Собрать все ${ALL_CODE_PARTS.length} уникальных SQL-функций`, threshold: ALL_CODE_PARTS.length, type: 'unique_parts' },
-                { id: 'earn_50_xp', name: 'Опытный Кодер', description: 'Заработать 50 опыта', threshold: 50, type: 'total_xp' },
-                { id: 'earn_200_xp', name: 'Гуру SQL', description: 'Заработать 200 опыта', threshold: 200, type: 'total_xp' },
-                { id: 'sell_5_parts', name: 'Торговец Данными', description: 'Продать 5 SQL-функций', threshold: 5, type: 'parts_sold' },
-                { id: 'buy_5_parts', name: 'Опытный Покупатель', description: 'Купить 5 SQL-функций', threshold: 5, type: 'parts_bought' },
-                { id: 'complete_1_project', name: 'Первый Проект', description: 'Завершить 1 проект', threshold: 1, type: 'projects_completed' }
-            ];
-
-            allAchievements.forEach(ach => {
-                const isCompleted = gameData.achievements[ach.id] && gameData.achievements[ach.id].completed;
+            // Используем информацию из gameData.achievements, где уже есть name и description
+            for (const achId in gameData.achievements) {
+                const ach = gameData.achievements[achId];
+                const isCompleted = ach.completed;
                 const div = document.createElement('div');
                 div.className = `achievement-item ${isCompleted ? 'completed' : ''}`;
                 div.innerHTML = `
@@ -1007,7 +531,7 @@
                     ${isCompleted ? '<span>&#10003; Получено!</span>' : ''}
                 `;
                 achievementsList.appendChild(div);
-            });
+            }
         }
 
         function renderStats() {
@@ -1029,10 +553,10 @@
                 let allRequirementsMet = true;
                 project.requirements.forEach(reqId => {
                     const requiredPart = ALL_CODE_PARTS.find(p => p.id === reqId);
-                    const hasPart = gameData.collection.some(item => item.id === reqId);
+                    const hasPart = gameData.collection.some(item => item.id === reqId && item.count > 0);
                     const metClass = hasPart ? 'requirement-met' : '';
                     if (!hasPart) allRequirementsMet = false;
-                    requirementsHtml += `<li class="${metClass}">${requiredPart ? requiredPart.emoji + ' ' + requiredPart.name : 'Неизвестная функция'} ${hasPart ? '&#10003;' : '&#10007;'}</li>`;
+                    requirementsHtml += `<li class="${metClass}"><span class="emoji">${requiredPart ? requiredPart.emoji : '❓'}</span> ${requiredPart ? requiredPart.name : 'Неизвестная функция'} ${hasPart ? '&#10003;' : '&#10007;'}</li>`;
                 });
                 requirementsHtml += '</ul>';
 
@@ -1041,13 +565,16 @@
                     <p>${project.description}</p>
                     <p><strong>Требования:</strong></p>
                     ${requirementsHtml}
-                    <p><strong>Награда:</strong> ${project.reward_xp} 🌟</p>
+                    <p><strong>Награда:</strong> ${project.reward_xp} <span class="emoji">🌟</span></p>
                     ${project.completed ? '<p style="color: var(--primary-color); font-weight: bold;">Проект завершен!</p>' :
                     `<button class="project-action-button secondary-button" data-project-id="${project.id}" ${!allRequirementsMet ? 'disabled' : ''}>Завершить проект</button>`}
                 `;
 
-                if (!project.completed && allRequirementsMet) {
-                    div.querySelector('.project-action-button').onclick = () => completeProject(project.id);
+                if (!project.completed) { // Only attach listener if not completed
+                    const completeButton = div.querySelector('.project-action-button');
+                    if (completeButton) { // Ensure button exists before attaching listener
+                        completeButton.onclick = () => completeProject(project.id);
+                    }
                 }
                 projectList.appendChild(div);
             });
@@ -1063,17 +590,20 @@
                 const div = document.createElement('div');
                 div.className = 'booster-item';
                 const isActive = gameData.activeBoosters.some(b => b.id === booster.id && b.endsAt > Date.now());
+                const currentBooster = gameData.activeBoosters.find(b => b.id === booster.id); // Для отображения оставшегося времени
 
                 div.innerHTML = `
                     <div>
                         <strong>${booster.name}</strong><br>
                         <span>${booster.description}</span><br>
-                        ${booster.effect.type === 'xp_multiplier' && isActive ? `<span style="color:var(--primary-color);">Активен! Осталось: ${formatTime(gameData.activeBoosters.find(b => b.id === booster.id).endsAt - Date.now())}</span>` : ''}
-                        ${booster.effect.type === 'rare_chance' && isActive ? `<span style="color:var(--primary-color);">Активен! Осталось: ${formatTime(gameData.activeBoosters.find(b => b.id === booster.id).endsAt - Date.now())}</span>` : ''}
+                        ${isActive ? `<span style="color:var(--primary-color); font-weight: bold;">Активен! Осталось: ${formatTime(currentBooster.endsAt - Date.now())}</span>` : ''}
                     </div>
-                    <button data-booster-id="${booster.id}" ${gameData.experience < booster.cost || isActive ? 'disabled' : ''}>Купить (${booster.cost} 🌟)</button>
+                    <button data-booster-id="${booster.id}" ${gameData.experience < booster.cost || isActive ? 'disabled' : ''}>Купить (${booster.cost} <span class="emoji">🌟</span>)</button>
                 `;
-                div.querySelector('button').onclick = () => buyBooster(booster.id);
+                const buyButton = div.querySelector('button');
+                if (buyButton) { // Проверяем, что кнопка существует
+                    buyButton.onclick = () => buyBooster(booster.id);
+                }
                 boosterList.appendChild(div);
             });
         }
@@ -1083,8 +613,7 @@
                 historyLog.innerHTML = '<p>Ваша история действий пуста.</p>';
             } else {
                 historyLog.innerHTML = '';
-                // Отображаем последние 10-15 записей
-                const recentHistory = gameData.history.slice(-15).reverse();
+                const recentHistory = gameData.history.slice(-15).reverse(); // Последние 15 записей
                 recentHistory.forEach(entry => {
                     const date = new Date(entry.timestamp);
                     const timeString = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -1100,7 +629,6 @@
         // --- Логика игры ---
         function addExperience(amount) {
             let actualAmount = amount;
-            // Проверяем активные бустеры опыта
             const xpBooster = gameData.activeBoosters.find(b => b.id === 'xp_boost' && b.endsAt > Date.now());
             if (xpBooster) {
                 actualAmount *= xpBooster.effect.value;
@@ -1113,7 +641,7 @@
 
             checkLevelUp();
             checkAchievements();
-            addHistoryEntry(`Получено ${actualAmount} опыта.`);
+            // addHistoryEntry(`Получено ${actualAmount} опыта.`); // Это уже в message, можно убрать для краткости истории, если нужно
         }
 
         function checkLevelUp() {
@@ -1121,8 +649,7 @@
                 gameData.currentXp -= gameData.xpToNextLevel;
                 gameData.level++;
                 gameData.xpToNextLevel = Math.floor(XP_PER_LEVEL_BASE * Math.pow(XP_PER_LEVEL_MULTIPLIER, gameData.level - 1));
-                // При каждом новом уровне можно увеличить максимальную энергию
-                gameData.maxEnergy++;
+                gameData.maxEnergy++; // При каждом новом уровне увеличиваем максимальную энергию
                 gameData.energy = gameData.maxEnergy; // Полное восстановление энергии при уровне
                 gameData.message = `Поздравляем! Вы достигли Уровня ${gameData.level}! 🎉 Максимальная энергия увеличена до ${gameData.maxEnergy}!`;
                 addHistoryEntry(`Уровень повышен до ${gameData.level}!`);
@@ -1133,34 +660,48 @@
             const uniquePartsCount = gameData.collection.length;
             const completedProjectsCount = gameData.projects.filter(p => p.completed).length;
 
-            const allAchievements = [
-                { id: 'collect_5_unique', threshold: 5, type: 'unique_parts' },
-                { id: 'collect_10_unique', threshold: 10, type: 'unique_parts' },
-                { id: 'collect_20_unique', threshold: 20, type: 'unique_parts' },
-                { id: 'collect_all_unique', threshold: ALL_CODE_PARTS.length, type: 'unique_parts' },
-                { id: 'earn_50_xp', threshold: 50, type: 'total_xp' },
-                { id: 'earn_200_xp', threshold: 200, type: 'total_xp' },
-                { id: 'sell_5_parts', threshold: 5, type: 'parts_sold' },
-                { id: 'buy_5_parts', threshold: 5, type: 'parts_bought' },
-                { id: 'complete_1_project', threshold: 1, type: 'projects_completed' }
-            ];
-
-            allAchievements.forEach(ach => {
-                if (!gameData.achievements[ach.id].completed) {
+            // Динамически проверяем все достижения в gameData.achievements
+            for (const achId in gameData.achievements) {
+                const ach = gameData.achievements[achId];
+                if (!ach.completed) {
                     let meetsCondition = false;
-                    if (ach.type === 'unique_parts' && uniquePartsCount >= ach.threshold) meetsCondition = true;
-                    if (ach.type === 'total_xp' && gameData.totalXpEarned >= ach.threshold) meetsCondition = true;
-                    if (ach.type === 'parts_sold' && gameData.partsSold >= ach.threshold) meetsCondition = true;
-                    if (ach.type === 'parts_bought' && gameData.partsBought >= ach.threshold) meetsCondition = true;
-                    if (ach.type === 'projects_completed' && completedProjectsCount >= ach.threshold) meetsCondition = true;
+                    switch (achId) {
+                        case 'collect_5_unique':
+                        case 'collect_10_unique':
+                        case 'collect_20_unique':
+                            if (uniquePartsCount >= (achId === 'collect_5_unique' ? 5 : achId === 'collect_10_unique' ? 10 : 20)) meetsCondition = true;
+                            break;
+                        case 'collect_all_unique':
+                            if (uniquePartsCount >= ALL_CODE_PARTS.length) meetsCondition = true;
+                            break;
+                        case 'earn_50_xp':
+                            if (gameData.totalXpEarned >= 50) meetsCondition = true;
+                            break;
+                        case 'earn_200_xp':
+                            if (gameData.totalXpEarned >= 200) meetsCondition = true;
+                            break;
+                        case 'sell_5_parts':
+                            if (gameData.partsSold >= 5) meetsCondition = true;
+                            break;
+                        case 'buy_5_parts':
+                            if (gameData.partsBought >= 5) meetsCondition = true;
+                            break;
+                        case 'complete_1_project':
+                            if (completedProjectsCount >= 1) meetsCondition = true;
+                            break;
+                        case 'complete_3_projects':
+                            if (completedProjectsCount >= 3) meetsCondition = true;
+                            break;
+                    }
 
                     if (meetsCondition) {
-                        gameData.achievements[ach.id].completed = true;
-                        addExperience(gameData.achievements[ach.id].reward); // Награда за достижение
-                        gameData.message = `Достижение "${ach.name}" получено! (+${gameData.achievements[ach.id].reward} 🌟)`;
+                        ach.completed = true;
+                        addExperience(ach.reward);
+                        gameData.message = `Достижение "${ach.name}" получено! (+${ach.reward} 🌟)`;
+                        addHistoryEntry(`Получено достижение: "${ach.name}"`);
                     }
                 }
-            });
+            }
         }
 
 
@@ -1189,9 +730,9 @@
 
             gameData.experience -= PART_PRICE;
             gameData.partsBought++;
-            gameData.message = `Вы купили ${partToBuy.emoji} ${partToBuy.name}! (-${PART_PRICE} 🌟)`;
+            gameData.message = `Вы купили <span class="emoji">${partToBuy.emoji}</span> ${partToBuy.name}! (-${PART_PRICE} <span class="emoji">🌟</span>)`;
             addHistoryEntry(`Куплена функция: ${partToBuy.name}`);
-            checkAchievements(); // Проверить достижения после покупки
+            checkAchievements();
             updateUI();
         }
 
@@ -1210,10 +751,9 @@
                 return;
             }
 
-            // На рынке покупаем только уникальные, которых у нас нет
             const existingPart = gameData.collection.find(item => item.id === partId);
             if (existingPart) {
-                 gameData.message = `Ошибка: ${partToBuy.name} уже есть в вашей коллекции!`;
+                 gameData.message = `<span class="emoji">${partToBuy.emoji}</span> ${partToBuy.name} уже есть в вашей коллекции!`;
                  updateUI();
                  return;
             }
@@ -1221,28 +761,29 @@
             gameData.collection.push({...partToBuy, count: 1});
             gameData.experience -= price;
             gameData.partsBought++;
-            gameData.message = `Вы купили редкую функцию ${partToBuy.emoji} ${partToBuy.name} на рынке! (-${price} 🌟)`;
+            gameData.message = `Вы купили редкую функцию <span class="emoji">${partToBuy.emoji}</span> ${partToBuy.name} на рынке! (-${price} <span class="emoji">🌟</span>)`;
             addHistoryEntry(`Куплена редкая функция: ${partToBuy.name} за ${price} 🌟`);
-            checkAchievements(); // Проверить достижения
+            checkAchievements();
             updateUI();
         }
 
         // Логика продажи
         function sellPart(partId) {
-            const existingPart = gameData.collection.find(item => item.id === partId);
+            const existingPartIndex = gameData.collection.findIndex(item => item.id === partId);
 
-            if (existingPart) {
+            if (existingPartIndex !== -1) {
+                const existingPart = gameData.collection[existingPartIndex];
                 if (existingPart.count > 1) {
                     existingPart.count--;
-                    gameData.message = `Вы продали ${existingPart.emoji} ${existingPart.name}! Теперь у вас их ${existingPart.count}. (+${PART_PRICE} 🌟)`;
+                    gameData.message = `Вы продали <span class="emoji">${existingPart.emoji}</span> ${existingPart.name}! Теперь у вас их ${existingPart.count}. (+${PART_PRICE} <span class="emoji">🌟</span>)`;
                 } else {
-                    gameData.collection = gameData.collection.filter(item => item.id !== partId);
-                    gameData.message = `Вы продали последнюю ${existingPart.emoji} ${existingPart.name}! (+${PART_PRICE} 🌟)`;
+                    gameData.collection.splice(existingPartIndex, 1);
+                    gameData.message = `Вы продали последнюю <span class="emoji">${existingPart.emoji}</span> ${existingPart.name}! (+${PART_PRICE} <span class="emoji">🌟</span>)`;
                 }
                 gameData.experience += PART_PRICE;
                 gameData.partsSold++;
                 addHistoryEntry(`Продана функция: ${existingPart.name}`);
-                checkAchievements(); // Проверить достижения
+                checkAchievements();
             } else {
                 gameData.message = 'Ошибка: этой функции нет в вашей коллекции для продажи.';
             }
@@ -1257,7 +798,8 @@
 
             if (energyToRecover > 0) {
                 gameData.energy = Math.min(gameData.maxEnergy, gameData.energy + energyToRecover);
-                gameData.lastEnergyRecovery = now; // Обновляем только при фактическом восстановлении
+                // Обновляем lastEnergyRecovery только на целое количество минут, чтобы остаток времени переносился
+                gameData.lastEnergyRecovery += (energyToRecover / gameData.energyRecoveryRate) * ENERGY_RECOVERY_INTERVAL_MS;
             }
         }
 
@@ -1279,7 +821,7 @@
             if (now - gameData.lastDailyBonusClaim >= DAILY_BONUS_COOLDOWN_MS) {
                 addExperience(DAILY_BONUS_AMOUNT);
                 gameData.lastDailyBonusClaim = now;
-                gameData.message = `Вы получили ежедневный бонус! (+${DAILY_BONUS_AMOUNT} 🌟)`;
+                gameData.message = `Вы получили ежедневный бонус! (+${DAILY_BONUS_AMOUNT} <span class="emoji">🌟</span>)`;
                 addHistoryEntry(`Получен ежедневный бонус: +${DAILY_BONUS_AMOUNT} 🌟`);
                 updateUI();
             } else {
@@ -1305,9 +847,9 @@
             if (allRequirementsMet) {
                 project.completed = true;
                 addExperience(project.reward_xp);
-                gameData.message = `Проект "${project.name}" завершен! Награда: ${project.reward_xp} 🌟!`;
+                gameData.message = `Проект "${project.name}" завершен! Награда: ${project.reward_xp} <span class="emoji">🌟</span>!`;
                 addHistoryEntry(`Завершен проект: "${project.name}"`);
-                checkAchievements(); // Проверяем достижения после завершения проекта
+                checkAchievements();
                 updateUI();
             } else {
                 gameData.message = 'У вас нет всех необходимых функций для завершения этого проекта.';
@@ -1326,7 +868,6 @@
                 return;
             }
 
-            // Проверяем, не активен ли уже постоянный бустер или бустер с длительностью
             if (booster.duration && gameData.activeBoosters.some(b => b.id === boosterId && b.endsAt > Date.now())) {
                  gameData.message = `${booster.name} уже активен!`;
                  updateUI();
@@ -1338,9 +879,8 @@
                  return;
             }
 
-
             gameData.experience -= booster.cost;
-            gameData.message = `Вы купили "${booster.name}"! (-${booster.cost} 🌟)`;
+            gameData.message = `Вы купили "${booster.name}"! (-${booster.cost} <span class="emoji">🌟</span>)`;
             addHistoryEntry(`Куплен бустер: "${booster.name}" за ${booster.cost} 🌟`);
 
 
@@ -1348,12 +888,12 @@
                 gameData.activeBoosters.push({
                     id: booster.id,
                     endsAt: Date.now() + booster.duration,
-                    effect: booster.effect // Store effect for easy lookup
+                    effect: booster.effect
                 });
                 gameData.message += ` Активен ${formatTime(booster.duration)}!`;
             } else if (booster.effect.type === 'energy_refill') {
                 gameData.energy = Math.min(gameData.maxEnergy, gameData.energy + booster.effect.value);
-                gameData.message += ` Энергия пополнена на ${booster.effect.value} ⚡️!`;
+                gameData.message += ` Энергия пополнена на ${booster.effect.value} <span class="emoji">⚡️</span>!`;
             }
             updateUI();
         }
@@ -1366,7 +906,6 @@
         // --- История действий ---
         function addHistoryEntry(text) {
             gameData.history.push({ timestamp: Date.now(), message: text });
-            // Ограничиваем историю, чтобы не разрасталась бесконечно
             if (gameData.history.length > 50) {
                 gameData.history = gameData.history.slice(gameData.history.length - 50);
             }
@@ -1396,140 +935,88 @@
             gameData.energy -= ENERGY_CONSUMPTION_PER_FIND;
             addHistoryEntry(`Использовано ${ENERGY_CONSUMPTION_PER_FIND} энергии для поиска.`);
 
-            const availableParts = ALL_CODE_PARTS;
             let foundPart = null;
-
-            // Логика для учета бустера шанса редких функций
             const rareChanceBooster = gameData.activeBoosters.find(b => b.id === 'find_chance_boost' && b.endsAt > Date.now());
-            let currentRareChanceModifier = rareChanceBooster ? rareChanceBooster.effect.value : 0; // Например, 0.1
+            let currentRareChanceModifier = rareChanceBooster ? rareChanceBooster.effect.value : 0;
 
-            // Распределяем шансы в зависимости от редкости
             const weightedParts = [];
             ALL_CODE_PARTS.forEach(part => {
-                const rarityDef = RARITIES[part.rarity] || RARITIES.common; // Default to common if not specified
+                const rarityDef = RARITIES[part.rarity] || RARITIES.common;
                 let baseChance = rarityDef.chance;
 
-                // Применяем модификатор бустера к шансу редких функций
                 if (part.rarity && part.rarity !== 'common') {
-                    baseChance = Math.min(1.0, baseChance + currentRareChanceModifier); // Увеличиваем шанс, но не более 100%
+                    baseChance = Math.min(1.0, baseChance + currentRareChanceModifier);
                 }
 
-                // Добавляем часть в массив пропорционально её шансу
-                for (let i = 0; i < Math.round(baseChance * 100); i++) { // Умножаем на 100 для дискретного распределения
+                for (let i = 0; i < Math.round(baseChance * 100); i++) {
                     weightedParts.push(part);
                 }
             });
 
-            // Выбираем случайную часть из взвешенного списка
             const randomIndex = Math.floor(Math.random() * weightedParts.length);
             foundPart = weightedParts[randomIndex];
 
-            if (!foundPart) { // В случае какой-то ошибки, даем хотя бы common
-                foundPart = ALL_CODE_PARTS.find(p => p.id === 'sql_select');
+            if (!foundPart) {
+                foundPart = ALL_CODE_PARTS.find(p => p.id === 'sql_select'); // Fallback
             }
 
             const existingPart = gameData.collection.find(item => item.id === foundPart.id);
 
             if (!existingPart) {
                 gameData.collection.push({...foundPart, count: 1});
-                addExperience(1); // 1 XP за новую находку
-                gameData.message = `Вы нашли новую SQL-функцию! 🎉 ${foundPart.emoji} ${foundPart.name} (+1 🌟)`;
+                addExperience(1);
+                gameData.message = `Вы нашли новую SQL-функцию! 🎉 <span class="emoji">${foundPart.emoji}</span> ${foundPart.name} (+1 <span class="emoji">🌟</span>)`;
                 addHistoryEntry(`Найдена новая функция: ${foundPart.name}`);
             } else {
                 existingPart.count++;
-                addExperience(1); // 1 XP за дубликат
-                gameData.message = `Вы нашли ${foundPart.emoji} ${foundPart.name} (уже есть)! Теперь у вас их ${existingPart.count}. (+1 🌟)`;
+                addExperience(1);
+                gameData.message = `Вы нашли <span class="emoji">${foundPart.emoji}</span> ${foundPart.name} (уже есть)! Теперь у вас их ${existingPart.count}. (+1 <span class="emoji">🌟</span>)`;
                 addHistoryEntry(`Найдена дубликат функции: ${foundPart.name} (x${existingPart.count})`);
             }
             updateUI();
         });
 
 
-        viewCollectionButton.addEventListener('click', () => {
-            gameData.currentView = 'collection';
-            gameData.message = 'Ваша коллекция SQL-функций:';
-            updateUI();
-        });
-
-        createButton.addEventListener('click', () => {
-            gameData.currentView = 'create';
-            gameData.message = 'Что вы хотите создать?';
-            updateUI();
-        });
-
-        shopButton.addEventListener('click', () => {
-            gameData.currentView = 'shop';
-            gameData.message = 'Добро пожаловать в магазин!';
-            updateUI();
-        });
-
-        marketButton.addEventListener('click', () => { // New Market Button
-            gameData.currentView = 'market';
-            gameData.message = 'Исследуйте редкие функции на рынке!';
-            updateUI();
-        });
-
-        dailyBonusButton.addEventListener('click', () => {
-            gameData.currentView = 'daily_bonus';
-            updateUI();
-        });
-        claimDailyBonusButton.addEventListener('click', claimDailyBonus);
-
-        achievementsButton.addEventListener('click', () => {
-            gameData.currentView = 'achievements';
-            gameData.message = 'Ваши достижения:';
-            updateUI();
-        });
-
-        statsButton.addEventListener('click', () => {
-            gameData.currentView = 'stats';
-            gameData.message = 'Ваша статистика:';
-            updateUI();
-        });
-
-        projectBoardButton.addEventListener('click', () => { // New Project Board Button
-            gameData.currentView = 'projects';
-            gameData.message = 'Выполняйте проекты и получайте награды!';
-            updateUI();
-        });
-
-        boostersButton.addEventListener('click', () => { // New Boosters Button
-            gameData.currentView = 'boosters';
-            gameData.message = 'Усильте свой прогресс!';
-            updateUI();
-        });
-
-        historyButton.addEventListener('click', () => { // New History Button
-            gameData.currentView = 'history';
-            gameData.message = 'Журнал ваших действий:';
-            updateUI();
-        });
-
-        // Кнопки "Назад" (общая функция для удобства)
-        function goBackToMain() {
-            gameData.currentView = 'main';
-            gameData.message = 'Продолжайте приключения!';
+        // Централизованная функция для переключения вида
+        function setGameView(view) {
+            gameData.currentView = view;
             updateUI();
         }
-        backFromCollectionButton.addEventListener('click', goBackToMain);
-        backFromCreateButton.addEventListener('click', goBackToMain);
-        backFromShopButton.addEventListener('click', goBackToMain);
-        backFromMarketButton.addEventListener('click', goBackToMain); // New
-        backFromDailyBonusButton.addEventListener('click', goBackToMain);
-        backFromAchievementsButton.addEventListener('click', goBackToMain);
-        backFromStatsButton.addEventListener('click', goBackToMain);
-        backFromProjectBoardButton.addEventListener('click', goBackToMain); // New
-        backFromBoostersButton.addEventListener('click', goBackToMain); // New
-        backFromHistoryButton.addEventListener('click', goBackToMain); // New
 
+        // Привязка обработчиков к кнопкам
+        collectButton.addEventListener('click', () => setGameView('main')); // Выполняет логику поиска
+        viewCollectionButton.addEventListener('click', () => setGameView('collection'));
+        createButton.addEventListener('click', () => setGameView('create'));
+        shopButton.addEventListener('click', () => setGameView('shop'));
+        dailyBonusButton.addEventListener('click', () => setGameView('daily_bonus'));
+        achievementsButton.addEventListener('click', () => setGameView('achievements'));
+        statsButton.addEventListener('click', () => setGameView('stats'));
+        projectBoardButton.addEventListener('click', () => setGameView('projects'));
+        boostersButton.addEventListener('click', () => setGameView('boosters'));
+        marketButton.addEventListener('click', () => setGameView('market'));
+        historyButton.addEventListener('click', () => setGameView('history'));
+
+        // Кнопки "Назад"
+        backFromCollectionButton.addEventListener('click', () => setGameView('main'));
+        backFromCreateButton.addEventListener('click', () => setGameView('main'));
+        backFromShopButton.addEventListener('click', () => setGameView('main'));
+        backFromMarketButton.addEventListener('click', () => setGameView('main'));
+        backFromDailyBonusButton.addEventListener('click', () => setGameView('main'));
+        backFromAchievementsButton.addEventListener('click', () => setGameView('main'));
+        backFromStatsButton.addEventListener('click', () => setGameView('main'));
+        backFromProjectBoardButton.addEventListener('click', () => setGameView('main'));
+        backFromBoostersButton.addEventListener('click', () => setGameView('main'));
+        backFromHistoryButton.addEventListener('click', () => setGameView('main'));
+
+        claimDailyBonusButton.addEventListener('click', claimDailyBonus);
 
         // Кнопка сброса игры
         resetGameButton.addEventListener('click', () => {
             if (confirm('Вы уверены, что хотите начать игру заново? Все данные будут удалены!')) {
                 localStorage.removeItem('coderGameData');
-                // Сброс gameData до начальных значений (важно, чтобы совпадали с дефолтными)
+                // Сброс gameData до начальных значений
                 gameData = {
-                    message: "Игра начата заново! Добро пожаловать!",
+                    message: "Игра начата заново! Добро пожаловать! 🚀",
                     collection: [],
                     experience: 0,
                     level: 1,
@@ -1546,23 +1033,24 @@
                     activeBoosters: [],
                     history: [],
                     achievements: {
-                        collect_5_unique: { completed: false, reward: 10 },
-                        collect_10_unique: { completed: false, reward: 20 },
-                        collect_20_unique: { completed: false, reward: 40 },
-                        collect_all_unique: { completed: false, reward: 100 },
-                        earn_50_xp: { completed: false, reward: 15 },
-                        earn_200_xp: { completed: false, reward: 50 },
-                        sell_5_parts: { completed: false, reward: 10 },
-                        buy_5_parts: { completed: false, reward: 10 },
-                        complete_1_project: { completed: false, reward: 25 },
+                        collect_5_unique: { completed: false, reward: 10, name: 'Первооткрыватель', description: 'Собрать 5 уникальных SQL-функций' },
+                        collect_10_unique: { completed: false, reward: 20, name: 'Юный Базист', description: 'Собрать 10 уникальных SQL-функций' },
+                        collect_20_unique: { completed: false, reward: 40, name: 'Мастер Запросов', description: 'Собрать 20 уникальных SQL-функций' },
+                        collect_all_unique: { completed: false, reward: 100, name: 'Великий Сборщик', description: 'Собрать все уникальные SQL-функции' },
+                        earn_50_xp: { completed: false, reward: 15, name: 'Опытный Кодер', description: 'Заработать 50 опыта' },
+                        earn_200_xp: { completed: false, reward: 50, name: 'Гуру SQL', description: 'Заработать 200 опыта' },
+                        sell_5_parts: { completed: false, reward: 10, name: 'Торговец Данными', description: 'Продать 5 SQL-функций' },
+                        buy_5_parts: { completed: false, reward: 10, name: 'Опытный Покупатель', description: 'Купить 5 SQL-функций' },
+                        complete_1_project: { completed: false, reward: 25, name: 'Первый Проект', description: 'Завершить 1 проект' },
+                        complete_3_projects: { completed: false, reward: 50, name: 'Архитектор Баз Данных', description: 'Завершить 3 проекта' },
                     },
-                    projects: [ // Reset projects to their initial incomplete state
+                    projects: [
                         { id: 'proj_basic_select', name: 'Базовая выборка данных', description: 'Извлечь все данные из таблицы Customers.', requirements: ['sql_select', 'sql_from'], completed: false, reward_xp: 20 },
                         { id: 'proj_filtered_select', name: 'Выборка с фильтром', description: 'Найти продукты дороже 50.', requirements: ['sql_select', 'sql_from', 'sql_where'], completed: false, reward_xp: 35 },
                         { id: 'proj_insert_data', name: 'Вставка новой записи', description: 'Добавить нового пользователя в таблицу.', requirements: ['sql_insert_into', 'sql_values'], completed: false, reward_xp: 25 },
                         { id: 'proj_update_record', name: 'Обновление записи', description: 'Изменить данные существующей записи.', requirements: ['sql_update', 'sql_set', 'sql_where'], completed: false, reward_xp: 30 },
                         { id: 'proj_delete_record', name: 'Удаление записи', description: 'Удалить запись из таблицы.', requirements: ['sql_delete_from', 'sql_where'], completed: false, reward_xp: 20 },
-                        { id: 'proj_table_join', name: 'Объединение таблиц', description: 'Соединить данные из Customers и Orders.', requirements: ['sql_select', 'sql_from', 'sql_join', 'sql_on'], completed: false, reward_xp: 50 },
+                        { id: 'proj_table_join', name: 'Объединение таблиц', description: 'Соединить данные из Customers и Orders.', requirements: ['sql_select', 'sql_from', 'sql_join'], completed: false, reward_xp: 50 },
                         { id: 'proj_create_simple_table', name: 'Создание простой таблицы', description: 'Создать таблицу с ID и именем.', requirements: ['sql_create_table', 'sql_int', 'sql_varchar'], completed: false, reward_xp: 40 },
                         { id: 'proj_count_records', name: 'Подсчет записей', description: 'Посчитать количество записей в таблице.', requirements: ['sql_select', 'sql_count', 'sql_from'], completed: false, reward_xp: 20 },
                         { id: 'proj_aggregate_data', name: 'Агрегация данных', description: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
@@ -1570,14 +1058,12 @@
                     currentView: 'main'
                 };
                 updateUI();
-                setTimeout(() => {
-                    if (window.Telegram && window.Telegram.WebApp) {
-                        // Telegram.WebApp.close(); // Можно попробовать закрыть Mini App, но часто лучше просто перезагрузить
-                        location.reload();
-                    } else {
-                        location.reload();
-                    }
-                }, 100);
+                // Для Telegram WebApp часто требуется полная перезагрузка для сброса состояния
+                if (window.Telegram && window.Telegram.WebApp) {
+                    Telegram.WebApp.close(); // или window.location.reload();
+                } else {
+                    location.reload();
+                }
             }
         });
 
@@ -1615,25 +1101,22 @@
                 // Загрузка истории
                 gameData.history = loadedGameData.history || [];
 
-                // Загрузка достижений
+                // Загрузка достижений: обновляем только 'completed' статус, но используем текущие reward/name/description
                 for (const achId in gameData.achievements) {
                     if (loadedGameData.achievements && loadedGameData.achievements[achId]) {
                         gameData.achievements[achId].completed = loadedGameData.achievements[achId].completed;
                     }
                 }
 
-                // Загрузка проектов: важно сохранить состояние completed, но обновить данные из ALL_CODE_PARTS
-                gameData.projects = (loadedGameData.projects || []).map(savedProj => {
-                    const defaultProj = gameData.projects.find(p => p.id === savedProj.id);
-                    if (defaultProj) {
-                        return { ...defaultProj, completed: savedProj.completed };
+                // Загрузка проектов: важно сохранить состояние completed, но обновить данные из текущих gameData.projects
+                // Это позволяет добавлять новые проекты в будущем без потери прогресса по старым
+                const loadedProjectsMap = new Map(loadedGameData.projects.map(p => [p.id, p]));
+                gameData.projects = gameData.projects.map(defaultProj => {
+                    if (loadedProjectsMap.has(defaultProj.id)) {
+                        return { ...defaultProj, completed: loadedProjectsMap.get(defaultProj.id).completed };
                     }
-                    return null;
-                }).filter(Boolean);
-                // Если добавлены новые проекты, их нужно добавить в gameData.projects
-                const newProjects = gameData.projects.filter(p => !loadedGameData.projects.some(sp => sp.id === p.id));
-                gameData.projects.push(...newProjects);
-
+                    return defaultProj; // Новый проект, не найденный в сохранении, остается как есть (незавершенным)
+                });
 
                 // Загрузка коллекции: убеждаемся, что части существуют в ALL_CODE_PARTS
                 // и что у них есть свойство count
@@ -1647,23 +1130,25 @@
 
         // --- Инициализация при старте ---
         loadGameData();
-        // При старте проверяем энергию и очищаем бустеры, затем обновляем UI
-        updateEnergy();
-        cleanExpiredBoosters();
-        updateUI();
+        updateEnergy(); // Проверяем энергию сразу после загрузки
+        cleanExpiredBoosters(); // Очищаем просроченные бустеры
+        updateUI(); // Обновляем UI после загрузки данных
 
         // Устанавливаем начальное сообщение только если оно не было изменено при загрузке
-        if (gameData.currentView === 'main') {
-            gameMessageElement.textContent = `Добро пожаловать обратно! У вас ${gameData.experience} 🌟`;
+        if (gameData.currentView === 'main' && gameData.message === "Добро пожаловать в игру!") {
+             gameMessageElement.innerHTML = `Добро пожаловать обратно! У вас ${gameData.experience} <span class="emoji">🌟</span>`;
         }
+
 
         // Автоматическое сохранение каждые 5 секунд
         setInterval(saveGameData, 5000);
 
-        // Обновление энергии каждую минуту
-        setInterval(updateEnergy, ENERGY_RECOVERY_INTERVAL_MS);
-        // Обновление UI для отображения прогресса энергии и бустеров
-        setInterval(updateUI, 1000); // Обновляем каждую секунду для таймеров
+        // Обновление энергии и бустеров каждую секунду для плавного отображения таймеров
+        setInterval(() => {
+            updateEnergy();
+            cleanExpiredBoosters();
+            updateUI();
+        }, 1000);
     </script>
 </body>
 </html>
