@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Игра: Сборщик Кода</title>
+    <title>Игра: Сборщик Кода SQL</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -47,24 +47,37 @@
         .collection-item {
             display: block;
             padding: 8px;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             background-color: #e2e6ea;
             border-radius: 4px;
             text-align: left;
+            position: relative;
+            cursor: pointer;
+        }
+        .collection-item-description {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .collection-item-description.show {
+            max-height: 100px; /* Достаточная высота для текста */
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <div class="message" id="gameMessage">Добро пожаловать в игру "Сборщик Кода"! 🚀 Соберите свою первую часть!</div>
+        <div class="message" id="gameMessage">Добро пожаловать в игру "Сборщик SQL-функций"! 🚀 Соберите свою первую часть!</div>
         <div class="buttons-container">
-            <button id="collectButton">Найти часть кода 🔍</button>
-            <button id="viewCollectionButton">Моя коллекция 🎒</button>
-            <button id="createButton">Создать код 💡</button>
+            <button id="collectButton">Найти SQL-функцию 🔍</button>
+            <button id="viewCollectionButton">Моя коллекция SQL 🎒</button>
+            <button id="createButton">Создать SQL-запрос 💡</button>
         </div>
 
         <div id="collectionDisplay" style="display: none; margin-top: 20px;">
-            <h3>Моя коллекция:</h3>
+            <h3>Моя коллекция SQL:</h3>
             <div id="collectionList">
                 <p>Пока ничего нет...</p>
             </div>
@@ -72,27 +85,22 @@
         </div>
 
         <div id="createPanel" style="display: none; margin-top: 20px;">
-            <h3>Создание кода:</h3>
+            <h3>Создание SQL-запроса:</h3>
             <div id="availableParts">
-                <p>Сначала соберите части!</p>
+                <p>Сначала соберите SQL-функции!</p>
             </div>
             <button id="backFromCreate">Назад</button>
         </div>
-    </div>
+    </div> <div style="font-size: 0.8em; color: #888; margin-top: 20px;">
+        Версия: <span id="gameVersion">0.1.1</span> </div>
+
+    <script src="game_data.js"></script>
 
     <script>
         let gameData = {
             message: "Добро пожаловать в игру!",
             collection: [],
-            availableCodeParts: [ // Примеры частей кода
-                { id: 'html_tag', name: 'HTML-тег <body>', emoji: '📄' },
-                { id: 'css_rule', name: 'CSS-правило {color:blue;}', emoji: '🎨' },
-                { id: 'js_func', name: 'JavaScript функция alert()', emoji: '💻' },
-                { id: 'python_print', name: 'Python print("Hello")', emoji: '🐍' },
-                { id: 'sql_select', name: 'SQL SELECT * FROM', emoji: '🗃️' }
-            ],
-            // Для хранения состояния (открыто ли окно коллекции/создания)
-            currentView: 'main' // 'main', 'collection', 'create'
+            currentView: 'main'
         };
 
         const gameMessageElement = document.getElementById('gameMessage');
@@ -107,24 +115,19 @@
         const availablePartsDiv = document.getElementById('availableParts');
         const backFromCreateButton = document.getElementById('backFromCreate');
 
-        // Инициализация Telegram Web App SDK (ОЧЕНЬ ВАЖНО для работы внутри ТГ)
-        // Это строка позволяет HTML-странице взаимодействовать с Telegram
+
+        // Инициализация Telegram Web App SDK
         if (window.Telegram && window.Telegram.WebApp) {
             Telegram.WebApp.ready();
-            Telegram.WebApp.expand(); // Расширяем мини-приложение на всю высоту
+            Telegram.WebApp.expand();
             console.log('Telegram WebApp initialized.');
-            // Можно добавить кнопку закрытия, если нужно
-            // Telegram.WebApp.setHeaderColor('#36802d'); // Цвет хедера
-            // Telegram.WebApp.setBackgroundColor('#204c1a'); // Цвет фона
         } else {
             console.warn('Telegram WebApp script not loaded or not in Telegram environment.');
         }
 
-
         function updateUI() {
             gameMessageElement.textContent = gameData.message;
 
-            // Управление отображением панелей
             if (gameData.currentView === 'main') {
                 buttonsContainer.style.display = 'flex';
                 collectionDisplay.style.display = 'none';
@@ -150,7 +153,18 @@
                 gameData.collection.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'collection-item';
-                    div.textContent = `${item.emoji} ${item.name}`;
+                    div.innerHTML = `
+                        <div>${item.emoji} ${item.name}</div>
+                        <div class="collection-item-description" id="desc-${item.id}">
+                            ${item.description}
+                        </div>
+                    `;
+                    div.onclick = () => {
+                        const descElement = document.getElementById(`desc-${item.id}`);
+                        if (descElement) {
+                            descElement.classList.toggle('show');
+                        }
+                    };
                     collectionList.appendChild(div);
                 });
             }
@@ -158,22 +172,23 @@
 
         function renderCreatePanel() {
             if (gameData.collection.length === 0) {
-                availablePartsDiv.innerHTML = '<p>Сначала соберите части кода, чтобы что-то создать!</p>';
+                availablePartsDiv.innerHTML = '<p>Сначала соберите SQL-функции, чтобы что-то создать!</p>';
             } else {
-                availablePartsDiv.innerHTML = '<p>Выберите части из вашей коллекции для "сборки":</p>';
+                availablePartsDiv.innerHTML = '<p>Выберите функции из вашей коллекции для "сборки":</p>';
+                availablePartsDiv.innerHTML = '';
+
                 gameData.collection.forEach(item => {
                     const button = document.createElement('button');
                     button.textContent = `${item.emoji} ${item.name}`;
                     button.onclick = () => selectPartToCreate(item.id);
                     availablePartsDiv.appendChild(button);
                 });
-                // Можно добавить кнопку для завершения создания, если выбраны части
                 if (gameData.collection.length > 0) {
                      const createFinalButton = document.createElement('button');
-                     createFinalButton.textContent = '⚡️ Собрать из выбранного (пока не работает)';
+                     createFinalButton.textContent = '⚡️ Собрать SQL-запрос (пока не работает)';
                      createFinalButton.style.marginTop = '10px';
                      createFinalButton.onclick = () => {
-                         gameData.message = 'Вы пытались что-то собрать! 🛠️ (функция в разработке)';
+                         gameData.message = 'Вы пытались собрать SQL-запрос! 🛠️ (функция в разработке)';
                          updateUI();
                      };
                      availablePartsDiv.appendChild(createFinalButton);
@@ -182,7 +197,6 @@
         }
 
         function selectPartToCreate(partId) {
-            // В этой простой версии пока просто уведомляем
             const selectedPart = gameData.collection.find(p => p.id === partId);
             if (selectedPart) {
                 gameData.message = `Вы выбрали "${selectedPart.name}" для создания! 🤔 (нужно выбрать несколько для "сборки")`;
@@ -192,13 +206,12 @@
 
         // Обработчики событий кнопок
         collectButton.addEventListener('click', () => {
-            const randomIndex = Math.floor(Math.random() * gameData.availableCodeParts.length);
-            const foundPart = gameData.availableCodeParts[randomIndex];
+            const randomIndex = Math.floor(Math.random() * ALL_CODE_PARTS.length);
+            const foundPart = ALL_CODE_PARTS[randomIndex];
 
-            // Проверяем, есть ли уже такая часть в коллекции
             if (!gameData.collection.some(item => item.id === foundPart.id)) {
-                gameData.collection.push(foundPart);
-                gameData.message = `Вы нашли новую часть! 🎉 ${foundPart.emoji} ${foundPart.name}`;
+                gameData.collection.push({...foundPart});
+                gameData.message = `Вы нашли новую SQL-функцию! 🎉 ${foundPart.emoji} ${foundPart.name}`;
             } else {
                 gameData.message = `Вы нашли ${foundPart.emoji} ${foundPart.name}, но она у вас уже есть! Поищите что-то другое... 😅`;
             }
@@ -207,7 +220,7 @@
 
         viewCollectionButton.addEventListener('click', () => {
             gameData.currentView = 'collection';
-            gameData.message = 'Ваша коллекция частей кода:';
+            gameData.message = 'Ваша коллекция SQL-функций:';
             updateUI();
         });
 
@@ -229,12 +242,10 @@
             updateUI();
         });
 
-
         // Первоначальное обновление UI при загрузке
         updateUI();
 
-        // Пример сохранения состояния (можно расширить для localStorage)
-        // Это очень простой пример. Для полноценной игры нужно более надежное сохранение.
+        // Пример сохранения состояния (localStorage)
         function saveGameData() {
             localStorage.setItem('coderGameData', JSON.stringify(gameData));
         }
@@ -242,17 +253,20 @@
         function loadGameData() {
             const savedData = localStorage.getItem('coderGameData');
             if (savedData) {
-                gameData = JSON.parse(savedData);
+                const loadedGameData = JSON.parse(savedData);
+                loadedGameData.collection = loadedGameData.collection.map(item => {
+                    const fullItem = ALL_CODE_PARTS.find(part => part.id === item.id);
+                    return fullItem ? {...fullItem} : item;
+                });
+                gameData = loadedGameData;
             }
         }
 
-        // Загружаем данные при старте
         loadGameData();
-        updateUI(); // Обновляем UI после загрузки данных
+        updateUI();
 
-        // Сохраняем данные каждые 5 секунд (пример)
+        // Сохраняем данные каждые 5 секунд
         setInterval(saveGameData, 5000);
-
     </script>
 </body>
 </html>
