@@ -6,7 +6,8 @@ const ALL_CODE_PARTS = [
         emoji: '🔍',
         description: 'Выбирает столбцы данных из базы данных.',
         example: 'SELECT column1, column2 FROM table_name;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_from',
@@ -14,7 +15,8 @@ const ALL_CODE_PARTS = [
         emoji: '📦',
         description: 'Указывает, из какой таблицы извлекать данные.',
         example: 'SELECT * FROM Customers;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_where',
@@ -22,7 +24,8 @@ const ALL_CODE_PARTS = [
         emoji: '🎯',
         description: 'Фильтрует записи, основываясь на заданном условии.',
         example: 'SELECT * FROM Products WHERE Price > 50;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_insert_into',
@@ -30,7 +33,8 @@ const ALL_CODE_PARTS = [
         emoji: '➕',
         description: 'Добавляет новые строки данных в таблицу.',
         example: 'INSERT INTO Customers (Name, City) VALUES (\'Alice\', \'New York\');',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_values',
@@ -38,7 +42,8 @@ const ALL_CODE_PARTS = [
         emoji: '🔢',
         description: 'Указывает значения для вставки в столбцы.',
         example: 'INSERT INTO Orders (CustomerID, OrderDate) VALUES (1, \'2023-01-15\');',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_update',
@@ -46,7 +51,8 @@ const ALL_CODE_PARTS = [
         emoji: '✏️',
         description: 'Изменяет существующие данные в таблице.',
         example: 'UPDATE Products SET Price = 100 WHERE ProductID = 1;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_set',
@@ -54,7 +60,8 @@ const ALL_CODE_PARTS = [
         emoji: '🔄',
         description: 'Устанавливает новые значения для столбцов при обновлении.',
         example: 'UPDATE Employees SET Salary = 60000 WHERE EmployeeID = 5;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_delete_from',
@@ -62,7 +69,8 @@ const ALL_CODE_PARTS = [
         emoji: '❌',
         description: 'Удаляет существующие строки из таблицы.',
         example: 'DELETE FROM Orders WHERE OrderID = 101;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_create_table',
@@ -70,7 +78,8 @@ const ALL_CODE_PARTS = [
         emoji: '🧱',
         description: 'Создает новую таблицу в базе данных.',
         example: 'CREATE TABLE Users (UserID INT, UserName VARCHAR(255));',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_int',
@@ -78,7 +87,8 @@ const ALL_CODE_PARTS = [
         emoji: '🔢',
         description: 'Целочисленный тип данных.',
         example: 'CREATE TABLE Products (ProductID INT, ProductName VARCHAR(255));',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_varchar',
@@ -86,7 +96,8 @@ const ALL_CODE_PARTS = [
         emoji: '📝',
         description: 'Строковый тип данных переменной длины.',
         example: 'CREATE TABLE Users (UserName VARCHAR(50));',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_date',
@@ -94,7 +105,8 @@ const ALL_CODE_PARTS = [
         emoji: '📅',
         description: 'Тип данных для хранения даты.',
         example: 'CREATE TABLE Orders (OrderDate DATE);',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_primary_key',
@@ -102,7 +114,8 @@ const ALL_CODE_PARTS = [
         emoji: '🔑',
         description: 'Уникальный идентификатор для каждой записи в таблице.',
         example: 'CREATE TABLE Customers (CustomerID INT PRIMARY KEY);',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_foreign_key',
@@ -110,7 +123,8 @@ const ALL_CODE_PARTS = [
         emoji: '🔗',
         description: 'Ссылается на первичный ключ в другой таблице.',
         example: 'CONSTRAINT FK_OrdersCustomers FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID);',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'rare'
     },
     {
         id: 'sql_join',
@@ -118,7 +132,8 @@ const ALL_CODE_PARTS = [
         emoji: '🤝',
         description: 'Объединяет строки из двух или более таблиц на основе связанного столбца между ними.',
         example: 'SELECT Orders.OrderID, Customers.CustomerName FROM Orders JOIN Customers ON Orders.CustomerID = Customers.CustomerID;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_inner_join',
@@ -126,7 +141,8 @@ const ALL_CODE_PARTS = [
         emoji: '🤝',
         description: 'Возвращает только те строки, для которых есть совпадения в обеих таблицах.',
         example: 'SELECT A.col1, B.col2 FROM TableA A INNER JOIN TableB B ON A.id = B.id;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_left_join',
@@ -134,7 +150,8 @@ const ALL_CODE_PARTS = [
         emoji: '⬅️',
         description: 'Возвращает все строки из левой таблицы и совпадающие из правой.',
         example: 'SELECT A.col1, B.col2 FROM TableA A LEFT JOIN TableB B ON A.id = B.id;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_right_join',
@@ -142,7 +159,8 @@ const ALL_CODE_PARTS = [
         emoji: '➡️',
         description: 'Возвращает все строки из правой таблицы и совпадающие из левой.',
         example: 'SELECT A.col1, B.col2 FROM TableA A RIGHT JOIN TableB B ON A.id = B.id;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_full_outer_join',
@@ -150,7 +168,8 @@ const ALL_CODE_PARTS = [
         emoji: '↔️',
         description: 'Возвращает все строки, если есть совпадения в одной из таблиц.',
         example: 'SELECT A.col1, B.col2 FROM TableA A FULL OUTER JOIN TableB B ON A.id = B.id;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'rare'
     },
     {
         id: 'sql_group_by',
@@ -158,7 +177,8 @@ const ALL_CODE_PARTS = [
         emoji: '📊',
         description: 'Группирует строки, имеющие одинаковые значения в указанных столбцах.',
         example: 'SELECT Country, COUNT(CustomerID) FROM Customers GROUP BY Country;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_having',
@@ -166,7 +186,8 @@ const ALL_CODE_PARTS = [
         emoji: '📏',
         description: 'Фильтрует группы, созданные с помощью GROUP BY.',
         example: 'SELECT Country, COUNT(CustomerID) FROM Customers GROUP BY Country HAVING COUNT(CustomerID) > 5;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'rare'
     },
     {
         id: 'sql_order_by',
@@ -174,7 +195,8 @@ const ALL_CODE_PARTS = [
         emoji: '↕️',
         description: 'Сортирует результирующий набор по одному или нескольким столбцам.',
         example: 'SELECT ProductName, Price FROM Products ORDER BY Price DESC;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_asc',
@@ -182,7 +204,8 @@ const ALL_CODE_PARTS = [
         emoji: '⬆️',
         description: 'Сортирует данные в возрастающем порядке.',
         example: 'SELECT ProductName FROM Products ORDER BY ProductName ASC;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_desc',
@@ -190,7 +213,8 @@ const ALL_CODE_PARTS = [
         emoji: '⬇️',
         description: 'Сортирует данные в убывающем порядке.',
         example: 'SELECT ProductName FROM Products ORDER BY ProductName DESC;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_count',
@@ -198,7 +222,8 @@ const ALL_CODE_PARTS = [
         emoji: '∑',
         description: 'Возвращает количество строк, которые соответствуют указанному условию.',
         example: 'SELECT COUNT(ProductID) FROM Products;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_sum',
@@ -206,7 +231,8 @@ const ALL_CODE_PARTS = [
         emoji: '➕',
         description: 'Возвращает общую сумму числового столбца.',
         example: 'SELECT SUM(Quantity) FROM OrderDetails;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_avg',
@@ -214,7 +240,8 @@ const ALL_CODE_PARTS = [
         emoji: '🧮',
         description: 'Возвращает среднее значение числового столбца.',
         example: 'SELECT AVG(Price) FROM Products;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_min',
@@ -222,7 +249,8 @@ const ALL_CODE_PARTS = [
         emoji: '🔽',
         description: 'Возвращает наименьшее значение выбранного столбца.',
         example: 'SELECT MIN(Price) FROM Products;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_max',
@@ -230,7 +258,8 @@ const ALL_CODE_PARTS = [
         emoji: '🔼',
         description: 'Возвращает наибольшее значение выбранного столбца.',
         example: 'SELECT MAX(Salary) FROM Employees;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_like',
@@ -238,7 +267,8 @@ const ALL_CODE_PARTS = [
         emoji: '🎭',
         description: 'Используется в WHERE для поиска шаблона в столбце.',
         example: 'SELECT * FROM Customers WHERE CustomerName LIKE \'A%\';',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_wildcard_percent',
@@ -246,7 +276,8 @@ const ALL_CODE_PARTS = [
         emoji: '✨',
         description: 'Заменяет любое количество символов в LIKE.',
         example: 'SELECT * FROM Products WHERE ProductName LIKE \'%SQL%\';',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_wildcard_underscore',
@@ -254,7 +285,8 @@ const ALL_CODE_PARTS = [
         emoji: '➖',
         description: 'Заменяет один любой символ в LIKE.',
         example: 'SELECT * FROM Customers WHERE City LIKE \'L_ndon\';',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_in',
@@ -262,7 +294,8 @@ const ALL_CODE_PARTS = [
         emoji: '➡️',
         description: 'Позволяет указать несколько возможных значений в условии WHERE.',
         example: 'SELECT * FROM Orders WHERE ShipCity IN (\'London\', \'Paris\');',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_between',
@@ -270,7 +303,8 @@ const ALL_CODE_PARTS = [
         emoji: '↔️',
         description: 'Выбирает значения в пределах заданного диапазона.',
         example: 'SELECT * FROM Products WHERE Price BETWEEN 10 AND 20;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'uncommon'
     },
     {
         id: 'sql_distinct',
@@ -278,7 +312,8 @@ const ALL_CODE_PARTS = [
         emoji: '✨',
         description: 'Используется для возврата только уникальных значений.',
         example: 'SELECT DISTINCT Country FROM Customers;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_alias',
@@ -286,7 +321,8 @@ const ALL_CODE_PARTS = [
         emoji: '📛',
         description: 'Присваивает временное имя таблице или столбцу.',
         example: 'SELECT CustomerName AS Name FROM Customers;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_case',
@@ -294,7 +330,8 @@ const ALL_CODE_PARTS = [
         emoji: '❓',
         description: 'Условное выражение, как IF-THEN-ELSE.',
         example: 'SELECT ProductName, CASE WHEN Price > 100 THEN \'Expensive\' ELSE \'Cheap\' END AS PriceCategory FROM Products;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'rare'
     },
     {
         id: 'sql_union',
@@ -302,7 +339,8 @@ const ALL_CODE_PARTS = [
         emoji: '➕',
         description: 'Объединяет результирующие наборы двух или более операторов SELECT.',
         example: 'SELECT City FROM Customers UNION SELECT City FROM Suppliers;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'rare'
     },
     {
         id: 'sql_limit',
@@ -311,7 +349,7 @@ const ALL_CODE_PARTS = [
         description: 'Ограничивает количество возвращаемых строк.',
         example: 'SELECT * FROM Customers LIMIT 10;',
         type: 'SQL',
-        rarity: 'common' // Пример добавления редкости
+        rarity: 'uncommon'
     },
     {
         id: 'sql_top',
@@ -329,7 +367,7 @@ const ALL_CODE_PARTS = [
         description: 'Пропускает определенное количество строк перед возвратом.',
         example: 'SELECT * FROM Customers LIMIT 10 OFFSET 20;',
         type: 'SQL',
-        rarity: 'uncommon'
+        rarity: 'rare'
     },
     {
         id: 'sql_alter_table',
@@ -346,7 +384,8 @@ const ALL_CODE_PARTS = [
         emoji: '➕',
         description: 'Добавляет новый столбец в таблицу.',
         example: 'ALTER TABLE Employees ADD COLUMN StartDate DATE;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'rare'
     },
     {
         id: 'sql_drop_column',
@@ -354,7 +393,8 @@ const ALL_CODE_PARTS = [
         emoji: '🗑️',
         description: 'Удаляет столбец из таблицы.',
         example: 'ALTER TABLE Products DROP COLUMN Description;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'rare'
     },
     {
         id: 'sql_drop_table',
@@ -363,7 +403,7 @@ const ALL_CODE_PARTS = [
         description: 'Удаляет существующую таблицу из базы данных.',
         example: 'DROP TABLE Shippers;',
         type: 'SQL',
-        rarity: 'rare'
+        rarity: 'epic'
     },
     {
         id: 'sql_truncate_table',
@@ -372,7 +412,7 @@ const ALL_CODE_PARTS = [
         description: 'Удаляет все строки из таблицы, но оставляет структуру таблицы.',
         example: 'TRUNCATE TABLE Logs;',
         type: 'SQL',
-        rarity: 'uncommon'
+        rarity: 'rare'
     },
     {
         id: 'sql_create_database',
@@ -381,7 +421,7 @@ const ALL_CODE_PARTS = [
         description: 'Создает новую базу данных.',
         example: 'CREATE DATABASE MyNewDB;',
         type: 'SQL',
-        rarity: 'rare'
+        rarity: 'epic'
     },
     {
         id: 'sql_drop_database',
@@ -390,7 +430,7 @@ const ALL_CODE_PARTS = [
         description: 'Удаляет существующую базу данных.',
         example: 'DROP DATABASE OldDB;',
         type: 'SQL',
-        rarity: 'epic' // Пример очень редкой функции
+        rarity: 'legendary'
     },
     {
         id: 'sql_index',
@@ -407,7 +447,8 @@ const ALL_CODE_PARTS = [
         emoji: '➕➕',
         description: 'Объединяет результирующие наборы, включая дубликаты.',
         example: 'SELECT City FROM Customers UNION ALL SELECT City FROM Suppliers;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'rare'
     },
     {
         id: 'sql_exists',
@@ -416,7 +457,7 @@ const ALL_CODE_PARTS = [
         description: 'Проверяет наличие любых строк, возвращаемых подзапросом.',
         example: 'SELECT SupplierName FROM Suppliers WHERE EXISTS (SELECT ProductName FROM Products WHERE SupplierId = Suppliers.supplierId AND Price < 20);',
         type: 'SQL',
-        rarity: 'uncommon'
+        rarity: 'rare'
     },
     {
         id: 'sql_any_all',
@@ -425,7 +466,7 @@ const ALL_CODE_PARTS = [
         description: 'ANY: TRUE, если сравнение TRUE для ЛЮБОГО из значений в подзапросе. ALL: TRUE, если сравнение TRUE для ВСЕХ значений.',
         example: 'SELECT ProductName FROM Products WHERE ProductID = ANY (SELECT ProductID FROM OrderDetails WHERE Quantity > 10);',
         type: 'SQL',
-        rarity: 'rare'
+        rarity: 'epic'
     },
     {
         id: 'sql_is_null',
@@ -433,7 +474,8 @@ const ALL_CODE_PARTS = [
         emoji: '🚫',
         description: 'Проверяет, является ли значение NULL.',
         example: 'SELECT CustomerName FROM Customers WHERE Address IS NULL;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_is_not_null',
@@ -441,7 +483,8 @@ const ALL_CODE_PARTS = [
         emoji: '✅',
         description: 'Проверяет, не является ли значение NULL.',
         example: 'SELECT CustomerName FROM Customers WHERE Address IS NOT NULL;',
-        type: 'SQL'
+        type: 'SQL',
+        rarity: 'common'
     },
     {
         id: 'sql_top_n_percent',
@@ -450,7 +493,7 @@ const ALL_CODE_PARTS = [
         description: 'Выбирает указанный процент строк сверху.',
         example: 'SELECT TOP 50 PERCENT * FROM Customers;',
         type: 'SQL',
-        rarity: 'uncommon'
+        rarity: 'rare'
     },
     {
         id: 'sql_rank',
@@ -459,7 +502,7 @@ const ALL_CODE_PARTS = [
         description: 'Функция ранжирования, присваивает ранг каждой строке внутри раздела.',
         example: 'SELECT EmployeeName, Salary, RANK() OVER (ORDER BY Salary DESC) as RankNo FROM Employees;',
         type: 'SQL',
-        rarity: 'rare'
+        rarity: 'epic'
     },
     {
         id: 'sql_dense_rank',
@@ -468,7 +511,7 @@ const ALL_CODE_PARTS = [
         description: 'Функция ранжирования, аналогична RANK(), но без пропусков в рангах.',
         example: 'SELECT EmployeeName, Salary, DENSE_RANK() OVER (ORDER BY Salary DESC) as DenseRankNo FROM Employees;',
         type: 'SQL',
-        rarity: 'rare'
+        rarity: 'epic'
     },
     {
         id: 'sql_row_number',
@@ -495,7 +538,7 @@ const ALL_CODE_PARTS = [
         description: 'Превращает строки в столбцы, агрегируя данные.',
         example: 'SELECT Customer, [ProductA], [ProductB] FROM (SELECT Customer, Product, Quantity FROM Sales) AS SourceTable PIVOT (SUM(Quantity) FOR Product IN ([ProductA], [ProductB])) AS PivotTable;',
         type: 'SQL',
-        rarity: 'legendary' // Самая редкая функция
+        rarity: 'legendary'
     },
     {
         id: 'sql_unpivot',
@@ -516,7 +559,3 @@ const ALL_CODE_PARTS = [
         rarity: 'epic'
     }
 ];
-
-// Опционально: Добавление информации о редкости, если захотите использовать в поиске/магазине
-// В данном случае, я добавил поле 'rarity' для некоторых функций.
-// Возможные редкости: common, uncommon, rare, epic, legendary
