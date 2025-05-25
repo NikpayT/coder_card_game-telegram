@@ -450,7 +450,8 @@ button:disabled {
 
 /* Modal for detailed info */
 .modal {
-    display: none;
+    /* REMOVED: display: flex; */
+    display: none; /* Control visibility via JS */
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -461,9 +462,8 @@ button:disabled {
     background-color: rgba(0,0,0,0.7); /* Darker overlay */
     backdrop-filter: blur(5px);
     animation: fadeInModal 0.2s ease-out forwards;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
 }
 .modal-content {
     background-color: var(--card-background);
@@ -626,4 +626,4 @@ button:disabled {
     .list-item-main {
         margin-bottom: 5px;
     }
-}
+    }
