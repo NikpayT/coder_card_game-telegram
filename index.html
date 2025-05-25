@@ -40,7 +40,7 @@
 
         <div id="collectionDisplay" class="panel" style="display: none;">
             <h3 id="collectionHeader">Моя коллекция SQL: (0/55)</h3>
-            <div id="collectionList">
+            <div id="collectionList" class="list-grid">
                 <p>Пока ничего нет...</p>
             </div>
             <button id="backFromCollection" class="secondary-button" style="margin-top: 20px;">Назад</button>
@@ -56,7 +56,7 @@
 
         <div id="shopPanel" class="panel" style="display: none;">
             <h3>Магазин SQL-функций:</h3>
-            <div id="buyableItemsList">
+            <div id="buyableItemsList" class="list-grid">
                 <p>Все функции собраны!</p>
             </div>
             <button id="backFromShop" class="secondary-button" style="margin-top: 20px;">Назад</button>
@@ -64,8 +64,8 @@
 
         <div id="marketPanel" class="panel" style="display: none;">
             <h3>Рынок Редких Функций:</h3>
-            <p>Здесь вы можете купить редкие функции, которые сложно найти обычным поиском.</p>
-            <div id="marketItemsList">
+            <p style="font-size: 0.9em; color: var(--light-text-color);">Здесь вы можете купить редкие функции, которые сложно найти обычным поиском.</p>
+            <div id="marketItemsList" class="list-grid">
                 <p>На рынке пока нет редких функций.</p>
             </div>
             <button id="backFromMarket" class="secondary-button" style="margin-top: 20px;">Назад</button>
@@ -73,7 +73,7 @@
 
         <div id="dailyBonusPanel" class="panel" style="display: none;">
             <h3>Ежедневный бонус! <span class="emoji">🎁</span></h3>
-            <p id="dailyBonusMessage">Заберите свой бонус!</p>
+            <p id="dailyBonusMessage" style="font-size: 1em; margin-bottom: 15px;">Заберите свой бонус!</p>
             <button id="claimDailyBonusButton">Забрать бонус (5 <span class="emoji">🌟</span>)</button>
             <button id="backFromDailyBonus" class="secondary-button" style="margin-top: 10px;">Назад</button>
         </div>
@@ -97,7 +97,7 @@
 
         <div id="projectPanel" class="panel" style="display: none;">
             <h3>Доска Проектов <span class="emoji">📋</span></h3>
-            <p>Выполняйте проекты, собирая необходимые SQL-функции, чтобы заработать большие награды!</p>
+            <p style="font-size: 0.9em; color: var(--light-text-color); margin-bottom: 20px;">Выполняйте проекты, собирая необходимые SQL-функции, чтобы заработать большие награды!</p>
             <div id="projectList">
                 <p>Нет доступных проектов.</p>
             </div>
@@ -106,7 +106,7 @@
 
         <div id="boostersPanel" class="panel" style="display: none;">
             <h3>Бустеры и Улучшения <span class="emoji">🚀</span></h3>
-            <p>Улучшите свой прогресс! (Длительность бустеров 5 минут)</p>
+            <p style="font-size: 0.9em; color: var(--light-text-color); margin-bottom: 20px;">Улучшите свой прогресс! (Длительность бустеров 5 минут)</p>
             <div id="boosterList">
                 </div>
             <button id="backFromBoosters" class="secondary-button" style="margin-top: 20px;">Назад</button>
@@ -140,7 +140,7 @@
     </div>
 
     <div class="version-info">
-        Версия: <span id="gameVersion">0.6.0</span>
+        Версия: <span id="gameVersion">0.6.1</span>
     </div>
 
     <script src="game_data.js"></script>
@@ -234,7 +234,7 @@
         const statsButton = document.getElementById('statsButton');
         const projectBoardButton = document.getElementById('projectBoardButton');
         const boostersButton = document.getElementById('boostersButton');
-        const marketButton = document.getElementById('marketButton'); // Убедитесь, что эта кнопка есть в HTML
+        const marketButton = document.getElementById('marketButton');
         const historyButton = document.getElementById('historyButton');
 
         // Панели
@@ -308,7 +308,7 @@
         // --- Управление UI и состояниями ---
         function updateUI() {
             // Общие элементы
-            gameMessageElement.textContent = gameData.message;
+            gameMessageElement.innerHTML = gameData.message; // Use innerHTML to allow emojis
             experienceDisplay.innerHTML = `<span class="emoji">🌟</span> Опыт: ${gameData.experience}`;
             levelDisplay.innerHTML = `<span class="emoji">⬆️</span> Уровень: ${gameData.level} (${gameData.currentXp}/${gameData.xpToNextLevel} XP)`;
             const progressPercentage = (gameData.currentXp / gameData.xpToNextLevel) * 100;
@@ -386,7 +386,7 @@
             collectionHeader.textContent = `Моя коллекция SQL: (${uniquePartsCount}/${totalPartsCount})`;
 
             if (gameData.collection.length === 0) {
-                collectionList.innerHTML = '<p>Пока ничего нет...</p>';
+                collectionList.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">Пока ничего нет...</p>';
             } else {
                 collectionList.innerHTML = '';
                 const sortedCollection = [...gameData.collection].sort((a, b) => a.name.localeCompare(b.name));
@@ -396,10 +396,17 @@
                     div.className = 'list-item';
                     div.innerHTML = `
                         <div class="list-item-main">
-                            <span class="list-item-name"><span class="emoji">${item.emoji}</span> ${item.name} (x${item.count})</span>
+                            <span class="list-item-name"><span class="emoji">${item.emoji}</span> ${item.name}</span>
+                            <span class="list-item-description">В наличии: x${item.count}</span>
                         </div>
+                        <button class="item-action-button sell-button">Продать (1 <span class="emoji">🌟</span>)</button>
                     `;
-                    div.onclick = () => showPartDetails(item.id, 'collection');
+                    div.querySelector('.list-item-main').onclick = () => showPartDetails(item.id, 'collection');
+                    const sellBtn = div.querySelector('.sell-button');
+                    sellBtn.onclick = (event) => {
+                         event.stopPropagation(); // Prevent modal from opening
+                         sellPart(item.id);
+                    };
                     collectionList.appendChild(div);
                 });
             }
@@ -410,26 +417,33 @@
             const collectedPart = gameData.collection.find(item => item.id === partId);
 
             if (part) {
-                modalPartName.textContent = `${part.emoji} ${part.name}`;
+                modalPartName.innerHTML = `${part.emoji} ${part.name}`;
                 modalPartDescription.textContent = part.description;
                 modalPartType.textContent = part.type;
                 modalPartExample.textContent = part.example || 'Пример недоступен.';
                 modalPartCount.textContent = collectedPart ? collectedPart.count : 0;
 
-                // Скрываем или показываем кнопку "Продать" в зависимости от контекста и наличия
+                // Remove previous event listeners
+                const oldSellButton = modalSellButton.cloneNode(true);
+                modalSellButton.parentNode.replaceChild(oldSellButton, modalSellButton);
+                const newSellButton = document.getElementById('modalSellButton'); // Get new reference
+
+                // Show/hide sell button based on context and count
                 if (sourcePanel === 'collection' && collectedPart && collectedPart.count > 0) {
-                    modalSellButton.style.display = 'block';
-                    // Удаляем предыдущие обработчики, чтобы избежать дублирования
-                    const oldSellButton = modalSellButton.cloneNode(true);
-                    modalSellButton.parentNode.replaceChild(oldSellButton, modalSellButton);
-                    const newSellButton = document.getElementById('modalSellButton'); // Получаем новую ссылку
+                    newSellButton.style.display = 'block';
                     newSellButton.onclick = () => {
                         sellPart(part.id);
-                        partDetailModal.style.display = 'none'; // Close modal after selling
-                        updateUI(); // Refresh UI
+                        // After selling, check if count is 0, if so, close modal or update count
+                        const updatedCollectedPart = gameData.collection.find(item => item.id === part.id);
+                        if (!updatedCollectedPart || updatedCollectedPart.count === 0) {
+                            partDetailModal.style.display = 'none'; // Close modal if last one sold
+                        } else {
+                            modalPartCount.textContent = updatedCollectedPart.count; // Update count in modal
+                        }
+                        updateUI(); // Refresh UI for collection list
                     };
                 } else {
-                    modalSellButton.style.display = 'none';
+                    newSellButton.style.display = 'none';
                 }
 
                 partDetailModal.style.display = 'flex'; // Use flex to center
@@ -449,11 +463,12 @@
 
         function renderShopItems() {
             const buyableParts = ALL_CODE_PARTS.filter(part => {
+                // Только те, которых нет в коллекции совсем
                 return !gameData.collection.some(item => item.id === part.id);
             });
 
             if (buyableParts.length === 0) {
-                buyableItemsList.innerHTML = '<p>Все доступные функции собраны! 🏆</p>';
+                buyableItemsList.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">Все доступные функции собраны! 🏆</p>';
             } else {
                 buyableItemsList.innerHTML = '';
                 const sortedBuyableParts = [...buyableParts].sort((a, b) => a.name.localeCompare(b.name));
@@ -464,6 +479,7 @@
                     div.innerHTML = `
                         <div class="list-item-main">
                             <span class="list-item-name"><span class="emoji">${item.emoji}</span> ${item.name}</span>
+                            <span class="list-item-description">Тип: ${item.type}</span>
                         </div>
                         <button class="item-action-button buy-button" data-item-id="${item.id}">Купить (${PART_PRICE} <span class="emoji">🌟</span>)</button>
                     `;
@@ -482,24 +498,25 @@
         function renderMarketItems() {
             const rareParts = ALL_CODE_PARTS.filter(part =>
                 part.rarity && part.rarity !== 'common' &&
-                !gameData.collection.some(item => item.id === part.id)
+                !gameData.collection.some(item => item.id === part.id) // Only show if not already collected
             );
 
             if (rareParts.length === 0) {
-                marketItemsList.innerHTML = '<p>На рынке пока нет редких функций, или вы уже собрали их все!</p>';
+                marketItemsList.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">На рынке пока нет редких функций, или вы уже собрали их все!</p>';
             } else {
                 marketItemsList.innerHTML = '';
                 const sortedRareParts = [...rareParts].sort((a, b) => a.name.localeCompare(b.name));
 
                 sortedRareParts.forEach(item => {
-                    const rarityInfo = RARITIES[item.rarity] || { price: 1, chance: 0 };
+                    const rarityInfo = RARITIES[item.rarity] || { price: 1, chance: 0, name: 'Неизвестная' };
                     const marketPrice = rarityInfo.price;
 
                     const div = document.createElement('div');
-                    div.className = 'list-item';
+                    div.className = 'list-item market-item'; // Add market-item class for specific styling
                     div.innerHTML = `
                         <div class="list-item-main">
-                            <span class="list-item-name"><span class="emoji">${item.emoji}</span> ${item.name} (${RARITIES[item.rarity].name})</span>
+                            <span class="list-item-name"><span class="emoji">${item.emoji}</span> ${item.name}</span>
+                            <span class="list-item-description">Редкость: ${rarityInfo.name}</span>
                         </div>
                         <button class="item-action-button market-buy-button" data-item-id="${item.id}">Купить (${marketPrice} <span class="emoji">🌟</span>)</button>
                     `;
@@ -517,9 +534,15 @@
 
         function renderAchievements() {
             achievementsList.innerHTML = '';
-            // Используем информацию из gameData.achievements, где уже есть name и description
-            for (const achId in gameData.achievements) {
-                const ach = gameData.achievements[achId];
+            const allAchievements = Object.values(gameData.achievements);
+            const sortedAchievements = allAchievements.sort((a, b) => {
+                if (a.completed === b.completed) {
+                    return a.name.localeCompare(b.name);
+                }
+                return a.completed ? 1 : -1; // Completed go to the end
+            });
+
+            sortedAchievements.forEach(ach => {
                 const isCompleted = ach.completed;
                 const div = document.createElement('div');
                 div.className = `achievement-item ${isCompleted ? 'completed' : ''}`;
@@ -531,6 +554,9 @@
                     ${isCompleted ? '<span>&#10003; Получено!</span>' : ''}
                 `;
                 achievementsList.appendChild(div);
+            });
+            if (allAchievements.length === 0) {
+                 achievementsList.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">Список достижений пуст.</p>';
             }
         }
 
@@ -545,7 +571,13 @@
 
         function renderProjects() {
             projectList.innerHTML = '';
-            gameData.projects.forEach(project => {
+            const incompleteProjects = gameData.projects.filter(p => !p.completed);
+            const completedProjects = gameData.projects.filter(p => p.completed);
+
+            // Sort incomplete projects by reward_xp or some other metric
+            incompleteProjects.sort((a, b) => a.reward_xp - b.reward_xp);
+
+            [...incompleteProjects, ...completedProjects].forEach(project => { // Incomplete first, then completed
                 const div = document.createElement('div');
                 div.className = `project-item ${project.completed ? 'completed' : ''}`;
 
@@ -570,27 +602,33 @@
                     `<button class="project-action-button secondary-button" data-project-id="${project.id}" ${!allRequirementsMet ? 'disabled' : ''}>Завершить проект</button>`}
                 `;
 
-                if (!project.completed) { // Only attach listener if not completed
+                if (!project.completed) {
                     const completeButton = div.querySelector('.project-action-button');
-                    if (completeButton) { // Ensure button exists before attaching listener
+                    if (completeButton) {
                         completeButton.onclick = () => completeProject(project.id);
                     }
                 }
                 projectList.appendChild(div);
             });
 
-            if (gameData.projects.filter(p => !p.completed).length === 0) {
-                 projectList.innerHTML += '<p>Все доступные проекты завершены! Ждите новых!</p>';
+            if (gameData.projects.length === 0) {
+                 projectList.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">Нет доступных проектов.</p>';
+            } else if (incompleteProjects.length === 0 && completedProjects.length > 0) {
+                 projectList.innerHTML += '<p style="text-align: center; width: 100%; color: var(--light-text-color); margin-top: 20px;">Все доступные проекты завершены! Ждите новых!</p>';
             }
         }
 
         function renderBoosters() {
             boosterList.innerHTML = '';
+            if (BOOSTERS.length === 0) {
+                 boosterList.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">Список бустеров пуст.</p>';
+                 return;
+            }
             BOOSTERS.forEach(booster => {
                 const div = document.createElement('div');
                 div.className = 'booster-item';
                 const isActive = gameData.activeBoosters.some(b => b.id === booster.id && b.endsAt > Date.now());
-                const currentBooster = gameData.activeBoosters.find(b => b.id === booster.id); // Для отображения оставшегося времени
+                const currentBooster = gameData.activeBoosters.find(b => b.id === booster.id);
 
                 div.innerHTML = `
                     <div>
@@ -601,7 +639,7 @@
                     <button data-booster-id="${booster.id}" ${gameData.experience < booster.cost || isActive ? 'disabled' : ''}>Купить (${booster.cost} <span class="emoji">🌟</span>)</button>
                 `;
                 const buyButton = div.querySelector('button');
-                if (buyButton) { // Проверяем, что кнопка существует
+                if (buyButton) {
                     buyButton.onclick = () => buyBooster(booster.id);
                 }
                 boosterList.appendChild(div);
@@ -610,10 +648,10 @@
 
         function renderHistory() {
             if (gameData.history.length === 0) {
-                historyLog.innerHTML = '<p>Ваша история действий пуста.</p>';
+                historyLog.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">Ваша история действий пуста.</p>';
             } else {
                 historyLog.innerHTML = '';
-                const recentHistory = gameData.history.slice(-15).reverse(); // Последние 15 записей
+                const recentHistory = gameData.history.slice(-20).reverse(); // Show last 20 entries
                 recentHistory.forEach(entry => {
                     const date = new Date(entry.timestamp);
                     const timeString = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -632,7 +670,7 @@
             const xpBooster = gameData.activeBoosters.find(b => b.id === 'xp_boost' && b.endsAt > Date.now());
             if (xpBooster) {
                 actualAmount *= xpBooster.effect.value;
-                gameData.message += ` (Бустер XP: x${xpBooster.effect.value})`;
+                gameData.message += ` (Бустер XP: x${xpBooster.effect.value})`; // Append to existing message
             }
 
             gameData.experience += actualAmount;
@@ -641,7 +679,7 @@
 
             checkLevelUp();
             checkAchievements();
-            // addHistoryEntry(`Получено ${actualAmount} опыта.`); // Это уже в message, можно убрать для краткости истории, если нужно
+            // addHistoryEntry(`Получено ${actualAmount} опыта.`); // Avoid double logging if message already includes
         }
 
         function checkLevelUp() {
@@ -660,7 +698,6 @@
             const uniquePartsCount = gameData.collection.length;
             const completedProjectsCount = gameData.projects.filter(p => p.completed).length;
 
-            // Динамически проверяем все достижения в gameData.achievements
             for (const achId in gameData.achievements) {
                 const ach = gameData.achievements[achId];
                 if (!ach.completed) {
@@ -669,16 +706,16 @@
                         case 'collect_5_unique':
                         case 'collect_10_unique':
                         case 'collect_20_unique':
-                            if (uniquePartsCount >= (achId === 'collect_5_unique' ? 5 : achId === 'collect_10_unique' ? 10 : 20)) meetsCondition = true;
+                            const requiredUnique = parseInt(achId.match(/\d+/)[0]); // Extract number from ID
+                            if (uniquePartsCount >= requiredUnique) meetsCondition = true;
                             break;
                         case 'collect_all_unique':
                             if (uniquePartsCount >= ALL_CODE_PARTS.length) meetsCondition = true;
                             break;
                         case 'earn_50_xp':
-                            if (gameData.totalXpEarned >= 50) meetsCondition = true;
-                            break;
                         case 'earn_200_xp':
-                            if (gameData.totalXpEarned >= 200) meetsCondition = true;
+                            const requiredXp = parseInt(achId.match(/\d+/)[0]);
+                            if (gameData.totalXpEarned >= requiredXp) meetsCondition = true;
                             break;
                         case 'sell_5_parts':
                             if (gameData.partsSold >= 5) meetsCondition = true;
@@ -687,16 +724,15 @@
                             if (gameData.partsBought >= 5) meetsCondition = true;
                             break;
                         case 'complete_1_project':
-                            if (completedProjectsCount >= 1) meetsCondition = true;
-                            break;
                         case 'complete_3_projects':
-                            if (completedProjectsCount >= 3) meetsCondition = true;
+                            const requiredProjects = parseInt(achId.match(/\d+/)[0]);
+                            if (completedProjectsCount >= requiredProjects) meetsCondition = true;
                             break;
                     }
 
                     if (meetsCondition) {
                         ach.completed = true;
-                        addExperience(ach.reward);
+                        addExperience(ach.reward); // Achievement reward also affected by XP booster
                         gameData.message = `Достижение "${ach.name}" получено! (+${ach.reward} 🌟)`;
                         addHistoryEntry(`Получено достижение: "${ach.name}"`);
                     }
@@ -939,26 +975,36 @@
             const rareChanceBooster = gameData.activeBoosters.find(b => b.id === 'find_chance_boost' && b.endsAt > Date.now());
             let currentRareChanceModifier = rareChanceBooster ? rareChanceBooster.effect.value : 0;
 
+            // Generate weighted parts list for random selection based on rarity
             const weightedParts = [];
             ALL_CODE_PARTS.forEach(part => {
                 const rarityDef = RARITIES[part.rarity] || RARITIES.common;
                 let baseChance = rarityDef.chance;
 
+                // Apply rare chance booster only to non-common parts
                 if (part.rarity && part.rarity !== 'common') {
                     baseChance = Math.min(1.0, baseChance + currentRareChanceModifier);
                 }
 
-                for (let i = 0; i < Math.round(baseChance * 100); i++) {
+                // Add part to weighted list based on its chance (higher chance = more entries)
+                // Multiply by a factor (e.g., 1000) to ensure enough resolution for chances
+                for (let i = 0; i < Math.round(baseChance * 1000); i++) {
                     weightedParts.push(part);
                 }
             });
 
-            const randomIndex = Math.floor(Math.random() * weightedParts.length);
-            foundPart = weightedParts[randomIndex];
-
-            if (!foundPart) {
-                foundPart = ALL_CODE_PARTS.find(p => p.id === 'sql_select'); // Fallback
+            // Ensure there's always something to pick, even if all chances are very low
+            if (weightedParts.length === 0 && ALL_CODE_PARTS.length > 0) {
+                // Fallback: if somehow weighted list is empty, pick a random common part
+                const commonParts = ALL_CODE_PARTS.filter(p => p.rarity === 'common');
+                foundPart = commonParts.length > 0 ? commonParts[Math.floor(Math.random() * commonParts.length)] : ALL_CODE_PARTS[0];
+            } else if (weightedParts.length > 0) {
+                foundPart = weightedParts[Math.floor(Math.random() * weightedParts.length)];
+            } else {
+                 // Really shouldn't happen if ALL_CODE_PARTS is not empty
+                 foundPart = { id: 'default_error', name: 'Неизвестная функция', emoji: '❓' };
             }
+
 
             const existingPart = gameData.collection.find(item => item.id === foundPart.id);
 
@@ -984,89 +1030,90 @@
         }
 
         // Привязка обработчиков к кнопкам
-        collectButton.addEventListener('click', () => setGameView('main')); // Выполняет логику поиска
-        viewCollectionButton.addEventListener('click', () => setGameView('collection'));
-        createButton.addEventListener('click', () => setGameView('create'));
-        shopButton.addEventListener('click', () => setGameView('shop'));
-        dailyBonusButton.addEventListener('click', () => setGameView('daily_bonus'));
-        achievementsButton.addEventListener('click', () => setGameView('achievements'));
-        statsButton.addEventListener('click', () => setGameView('stats'));
-        projectBoardButton.addEventListener('click', () => setGameView('projects'));
-        boostersButton.addEventListener('click', () => setGameView('boosters'));
-        marketButton.addEventListener('click', () => setGameView('market'));
-        historyButton.addEventListener('click', () => setGameView('history'));
+        // Убедитесь, что кнопки привязаны один раз, чтобы избежать дублирования слушателей
+        const setupEventListeners = () => {
+            collectButton.addEventListener('click', () => setGameView('main'));
+            viewCollectionButton.addEventListener('click', () => setGameView('collection'));
+            createButton.addEventListener('click', () => setGameView('create'));
+            shopButton.addEventListener('click', () => setGameView('shop'));
+            dailyBonusButton.addEventListener('click', () => setGameView('daily_bonus'));
+            achievementsButton.addEventListener('click', () => setGameView('achievements'));
+            statsButton.addEventListener('click', () => setGameView('stats'));
+            projectBoardButton.addEventListener('click', () => setGameView('projects'));
+            boostersButton.addEventListener('click', () => setGameView('boosters'));
+            marketButton.addEventListener('click', () => setGameView('market'));
+            historyButton.addEventListener('click', () => setGameView('history'));
 
-        // Кнопки "Назад"
-        backFromCollectionButton.addEventListener('click', () => setGameView('main'));
-        backFromCreateButton.addEventListener('click', () => setGameView('main'));
-        backFromShopButton.addEventListener('click', () => setGameView('main'));
-        backFromMarketButton.addEventListener('click', () => setGameView('main'));
-        backFromDailyBonusButton.addEventListener('click', () => setGameView('main'));
-        backFromAchievementsButton.addEventListener('click', () => setGameView('main'));
-        backFromStatsButton.addEventListener('click', () => setGameView('main'));
-        backFromProjectBoardButton.addEventListener('click', () => setGameView('main'));
-        backFromBoostersButton.addEventListener('click', () => setGameView('main'));
-        backFromHistoryButton.addEventListener('click', () => setGameView('main'));
+            backFromCollectionButton.addEventListener('click', () => setGameView('main'));
+            backFromCreateButton.addEventListener('click', () => setGameView('main'));
+            backFromShopButton.addEventListener('click', () => setGameView('main'));
+            backFromMarketButton.addEventListener('click', () => setGameView('main'));
+            backFromDailyBonusButton.addEventListener('click', () => setGameView('main'));
+            backFromAchievementsButton.addEventListener('click', () => setGameView('main'));
+            backFromStatsButton.addEventListener('click', () => setGameView('main'));
+            backFromProjectBoardButton.addEventListener('click', () => setGameView('main'));
+            backFromBoostersButton.addEventListener('click', () => setGameView('main'));
+            backFromHistoryButton.addEventListener('click', () => setGameView('main'));
 
-        claimDailyBonusButton.addEventListener('click', claimDailyBonus);
+            claimDailyBonusButton.addEventListener('click', claimDailyBonus);
 
-        // Кнопка сброса игры
-        resetGameButton.addEventListener('click', () => {
-            if (confirm('Вы уверены, что хотите начать игру заново? Все данные будут удалены!')) {
-                localStorage.removeItem('coderGameData');
-                // Сброс gameData до начальных значений
-                gameData = {
-                    message: "Игра начата заново! Добро пожаловать! 🚀",
-                    collection: [],
-                    experience: 0,
-                    level: 1,
-                    xpToNextLevel: 100,
-                    currentXp: 0,
-                    totalXpEarned: 0,
-                    partsSold: 0,
-                    partsBought: 0,
-                    lastDailyBonusClaim: 0,
-                    energy: 10,
-                    maxEnergy: 10,
-                    energyRecoveryRate: 1,
-                    lastEnergyRecovery: Date.now(),
-                    activeBoosters: [],
-                    history: [],
-                    achievements: {
-                        collect_5_unique: { completed: false, reward: 10, name: 'Первооткрыватель', description: 'Собрать 5 уникальных SQL-функций' },
-                        collect_10_unique: { completed: false, reward: 20, name: 'Юный Базист', description: 'Собрать 10 уникальных SQL-функций' },
-                        collect_20_unique: { completed: false, reward: 40, name: 'Мастер Запросов', description: 'Собрать 20 уникальных SQL-функций' },
-                        collect_all_unique: { completed: false, reward: 100, name: 'Великий Сборщик', description: 'Собрать все уникальные SQL-функции' },
-                        earn_50_xp: { completed: false, reward: 15, name: 'Опытный Кодер', description: 'Заработать 50 опыта' },
-                        earn_200_xp: { completed: false, reward: 50, name: 'Гуру SQL', description: 'Заработать 200 опыта' },
-                        sell_5_parts: { completed: false, reward: 10, name: 'Торговец Данными', description: 'Продать 5 SQL-функций' },
-                        buy_5_parts: { completed: false, reward: 10, name: 'Опытный Покупатель', description: 'Купить 5 SQL-функций' },
-                        complete_1_project: { completed: false, reward: 25, name: 'Первый Проект', description: 'Завершить 1 проект' },
-                        complete_3_projects: { completed: false, reward: 50, name: 'Архитектор Баз Данных', description: 'Завершить 3 проекта' },
-                    },
-                    projects: [
-                        { id: 'proj_basic_select', name: 'Базовая выборка данных', description: 'Извлечь все данные из таблицы Customers.', requirements: ['sql_select', 'sql_from'], completed: false, reward_xp: 20 },
-                        { id: 'proj_filtered_select', name: 'Выборка с фильтром', description: 'Найти продукты дороже 50.', requirements: ['sql_select', 'sql_from', 'sql_where'], completed: false, reward_xp: 35 },
-                        { id: 'proj_insert_data', name: 'Вставка новой записи', description: 'Добавить нового пользователя в таблицу.', requirements: ['sql_insert_into', 'sql_values'], completed: false, reward_xp: 25 },
-                        { id: 'proj_update_record', name: 'Обновление записи', description: 'Изменить данные существующей записи.', requirements: ['sql_update', 'sql_set', 'sql_where'], completed: false, reward_xp: 30 },
-                        { id: 'proj_delete_record', name: 'Удаление записи', description: 'Удалить запись из таблицы.', requirements: ['sql_delete_from', 'sql_where'], completed: false, reward_xp: 20 },
-                        { id: 'proj_table_join', name: 'Объединение таблиц', description: 'Соединить данные из Customers и Orders.', requirements: ['sql_select', 'sql_from', 'sql_join'], completed: false, reward_xp: 50 },
-                        { id: 'proj_create_simple_table', name: 'Создание простой таблицы', description: 'Создать таблицу с ID и именем.', requirements: ['sql_create_table', 'sql_int', 'sql_varchar'], completed: false, reward_xp: 40 },
-                        { id: 'proj_count_records', name: 'Подсчет записей', description: 'Посчитать количество записей в таблице.', requirements: ['sql_select', 'sql_count', 'sql_from'], completed: false, reward_xp: 20 },
-                        { id: 'proj_aggregate_data', name: 'Агрегация данных', description: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
-                    ],
-                    currentView: 'main'
-                };
-                updateUI();
-                // Для Telegram WebApp часто требуется полная перезагрузка для сброса состояния
-                if (window.Telegram && window.Telegram.WebApp) {
-                    Telegram.WebApp.close(); // или window.location.reload();
-                } else {
-                    location.reload();
+            resetGameButton.addEventListener('click', () => {
+                if (confirm('Вы уверены, что хотите начать игру заново? Все данные будут удалены!')) {
+                    localStorage.removeItem('coderGameData');
+                    // Reset gameData to initial state directly
+                    gameData = {
+                        message: "Игра начата заново! Добро пожаловать! 🚀",
+                        collection: [],
+                        experience: 0,
+                        level: 1,
+                        xpToNextLevel: 100,
+                        currentXp: 0,
+                        totalXpEarned: 0,
+                        partsSold: 0,
+                        partsBought: 0,
+                        lastDailyBonusClaim: 0,
+                        energy: 10,
+                        maxEnergy: 10,
+                        energyRecoveryRate: 1,
+                        lastEnergyRecovery: Date.now(),
+                        activeBoosters: [],
+                        history: [],
+                        achievements: { // Re-initialize achievements
+                            collect_5_unique: { completed: false, reward: 10, name: 'Первооткрыватель', description: 'Собрать 5 уникальных SQL-функций' },
+                            collect_10_unique: { completed: false, reward: 20, name: 'Юный Базист', description: 'Собрать 10 уникальных SQL-функций' },
+                            collect_20_unique: { completed: false, reward: 40, name: 'Мастер Запросов', description: 'Собрать 20 уникальных SQL-функций' },
+                            collect_all_unique: { completed: false, reward: 100, name: 'Великий Сборщик', description: 'Собрать все уникальные SQL-функции' },
+                            earn_50_xp: { completed: false, reward: 15, name: 'Опытный Кодер', description: 'Заработать 50 опыта' },
+                            earn_200_xp: { completed: false, reward: 50, name: 'Гуру SQL', description: 'Заработать 200 опыта' },
+                            sell_5_parts: { completed: false, reward: 10, name: 'Торговец Данными', description: 'Продать 5 SQL-функций' },
+                            buy_5_parts: { completed: false, reward: 10, name: 'Опытный Покупатель', description: 'Купить 5 SQL-функций' },
+                            complete_1_project: { completed: false, reward: 25, name: 'Первый Проект', description: 'Завершить 1 проект' },
+                            complete_3_projects: { completed: false, reward: 50, name: 'Архитектор Баз Данных', description: 'Завершить 3 проекта' },
+                        },
+                        projects: [ // Re-initialize projects
+                            { id: 'proj_basic_select', name: 'Базовая выборка данных', description: 'Извлечь все данные из таблицы Customers.', requirements: ['sql_select', 'sql_from'], completed: false, reward_xp: 20 },
+                            { id: 'proj_filtered_select', name: 'Выборка с фильтром', description: 'Найти продукты дороже 50.', requirements: ['sql_select', 'sql_from', 'sql_where'], completed: false, reward_xp: 35 },
+                            { id: 'proj_insert_data', name: 'Вставка новой записи', description: 'Добавить нового пользователя в таблицу.', requirements: ['sql_insert_into', 'sql_values'], completed: false, reward_xp: 25 },
+                            { id: 'proj_update_record', name: 'Обновление записи', description: 'Изменить данные существующей записи.', requirements: ['sql_update', 'sql_set', 'sql_where'], completed: false, reward_xp: 30 },
+                            { id: 'proj_delete_record', name: 'Удаление записи', description: 'Удалить запись из таблицы.', requirements: ['sql_delete_from', 'sql_where'], completed: false, reward_xp: 20 },
+                            { id: 'proj_table_join', name: 'Объединение таблиц', description: 'Соединить данные из Customers и Orders.', requirements: ['sql_select', 'sql_from', 'sql_join'], completed: false, reward_xp: 50 },
+                            { id: 'proj_create_simple_table', name: 'Создание простой таблицы', description: 'Создать таблицу с ID и именем.', requirements: ['sql_create_table', 'sql_int', 'sql_varchar'], completed: false, reward_xp: 40 },
+                            { id: 'proj_count_records', name: 'Подсчет записей', description: 'Посчитать количество записей в таблице.', requirements: ['sql_select', 'sql_count', 'sql_from'], completed: false, reward_xp: 20 },
+                            { id: 'proj_aggregate_data', name: 'Агрегация данных', description: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
+                        ],
+                        currentView: 'main'
+                    };
+                    updateUI();
+                    // For Telegram WebApp, consider forcing a full reload or even closing to ensure state reset
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        // Telegram.WebApp.close(); // Or simply reload
+                        window.location.reload();
+                    } else {
+                        location.reload();
+                    }
                 }
-            }
-        });
-
+            });
+        };
 
         // --- Сохранение/Загрузка игры ---
         function saveGameData() {
@@ -1079,8 +1126,7 @@
             if (savedData) {
                 const loadedGameData = JSON.parse(savedData);
 
-                // Загружаем основные данные, используя оператор ?? для установки значений по умолчанию,
-                // если в сохраненных данных поле отсутствует (для новых полей)
+                // Load basic game properties, providing defaults for new fields (e.g., totalXpEarned, history)
                 gameData.experience = loadedGameData.experience ?? 0;
                 gameData.level = loadedGameData.level ?? 1;
                 gameData.xpToNextLevel = loadedGameData.xpToNextLevel ?? 100;
@@ -1094,60 +1140,66 @@
                 gameData.energyRecoveryRate = loadedGameData.energyRecoveryRate ?? 1;
                 gameData.lastEnergyRecovery = loadedGameData.lastEnergyRecovery ?? Date.now();
                 gameData.currentView = loadedGameData.currentView ?? 'main';
+                gameData.message = loadedGameData.message ?? "Добро пожаловать обратно!";
 
-                // Загрузка активных бустеров и очистка истекших
+
+                // Load and clean active boosters
                 gameData.activeBoosters = (loadedGameData.activeBoosters || []).filter(b => b.endsAt > Date.now());
 
-                // Загрузка истории
+                // Load history
                 gameData.history = loadedGameData.history || [];
 
-                // Загрузка достижений: обновляем только 'completed' статус, но используем текущие reward/name/description
+                // Load achievements: only copy the 'completed' status, keep current definitions
                 for (const achId in gameData.achievements) {
                     if (loadedGameData.achievements && loadedGameData.achievements[achId]) {
                         gameData.achievements[achId].completed = loadedGameData.achievements[achId].completed;
                     }
                 }
 
-                // Загрузка проектов: важно сохранить состояние completed, но обновить данные из текущих gameData.projects
-                // Это позволяет добавлять новые проекты в будущем без потери прогресса по старым
-                const loadedProjectsMap = new Map(loadedGameData.projects.map(p => [p.id, p]));
+                // Load projects: similar to achievements, update 'completed' status, keep current definitions
+                const loadedProjectsMap = new Map((loadedGameData.projects || []).map(p => [p.id, p]));
                 gameData.projects = gameData.projects.map(defaultProj => {
                     if (loadedProjectsMap.has(defaultProj.id)) {
                         return { ...defaultProj, completed: loadedProjectsMap.get(defaultProj.id).completed };
                     }
-                    return defaultProj; // Новый проект, не найденный в сохранении, остается как есть (незавершенным)
+                    return defaultProj; // New project, not found in save, stays as is (uncompleted)
                 });
 
-                // Загрузка коллекции: убеждаемся, что части существуют в ALL_CODE_PARTS
-                // и что у них есть свойство count
+                // Load collection: ensure parts exist in ALL_CODE_PARTS and have a count property
                 gameData.collection = (loadedGameData.collection || []).map(item => {
                     const fullItem = ALL_CODE_PARTS.find(part => part.id === item.id);
                     return fullItem ? { ...fullItem, count: item.count || 1 } : null;
-                }).filter(Boolean); // Фильтруем null-значения, если старые ID не нашлись
+                }).filter(Boolean); // Filter out null values if old IDs are not found
             }
         }
 
 
         // --- Инициализация при старте ---
-        loadGameData();
-        updateEnergy(); // Проверяем энергию сразу после загрузки
-        cleanExpiredBoosters(); // Очищаем просроченные бустеры
-        updateUI(); // Обновляем UI после загрузки данных
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners(); // Setup listeners once on DOMContentLoaded
+            loadGameData();
+            updateEnergy(); // Check energy immediately after loading
+            cleanExpiredBoosters(); // Clean expired boosters
+            updateUI(); // Update UI after loading data
 
-        // Устанавливаем начальное сообщение только если оно не было изменено при загрузке
-        if (gameData.currentView === 'main' && gameData.message === "Добро пожаловать в игру!") {
-             gameMessageElement.innerHTML = `Добро пожаловать обратно! У вас ${gameData.experience} <span class="emoji">🌟</span>`;
-        }
+            // Set initial message only if it was not changed during loading
+            if (gameData.currentView === 'main' && gameData.message === "Добро пожаловать в игру!") {
+                 gameMessageElement.innerHTML = `Добро пожаловать обратно! У вас ${gameData.experience} <span class="emoji">🌟</span>`;
+            }
+        });
 
 
-        // Автоматическое сохранение каждые 5 секунд
+        // Auto-save every 5 seconds
         setInterval(saveGameData, 5000);
 
-        // Обновление энергии и бустеров каждую секунду для плавного отображения таймеров
+        // Update energy and boosters every second for smooth timer display
         setInterval(() => {
             updateEnergy();
             cleanExpiredBoosters();
-            updateUI();
+            // Only update UI if we are on a relevant panel that shows time
+            if (gameData.currentView === 'daily_bonus' || gameData.currentView === 'boosters') {
+                 updateUI();
+            }
         }, 1000);
     </script>
 </body>
