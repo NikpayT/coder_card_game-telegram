@@ -557,5 +557,240 @@ const ALL_CODE_PARTS = [
         example: 'SELECT EmployeeName, Salary, SUM(Salary) OVER (PARTITION BY Department) AS DepartmentTotal FROM Employees;',
         type: 'SQL',
         rarity: 'epic'
+    },
+    // --- НОВЫЕ ФУНКЦИИ ---
+    {
+        id: 'sql_left_outer_join',
+        name: 'LEFT OUTER JOIN',
+        emoji: '⬅️🤝',
+        description: 'Возвращает все строки из левой таблицы и совпадающие из правой. Аналогично LEFT JOIN.',
+        example: 'SELECT A.col1, B.col2 FROM TableA A LEFT OUTER JOIN TableB B ON A.id = B.id;',
+        type: 'SQL',
+        rarity: 'uncommon'
+    },
+    {
+        id: 'sql_right_outer_join',
+        name: 'RIGHT OUTER JOIN',
+        emoji: '➡️🤝',
+        description: 'Возвращает все строки из правой таблицы и совпадающие из левой. Аналогично RIGHT JOIN.',
+        example: 'SELECT A.col1, B.col2 FROM TableA A RIGHT OUTER JOIN TableB B ON A.id = B.id;',
+        type: 'SQL',
+        rarity: 'uncommon'
+    },
+    {
+        id: 'sql_cross_join',
+        name: 'CROSS JOIN',
+        emoji: '✖️',
+        description: 'Возвращает декартово произведение строк двух таблиц.',
+        example: 'SELECT A.col1, B.col2 FROM TableA A CROSS JOIN TableB B;',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_self_join',
+        name: 'SELF JOIN',
+        emoji: '👤🤝',
+        description: 'Объединение таблицы с самой собой.',
+        example: 'SELECT A.EmployeeName AS Employee1, B.EmployeeName AS Employee2 FROM Employees A, Employees B WHERE A.ManagerID = B.EmployeeID;',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_subquery',
+        name: 'Подзапрос (Subquery)',
+        emoji: '📦🔍',
+        description: 'Запрос внутри другого запроса.',
+        example: 'SELECT ProductName FROM Products WHERE Price > (SELECT AVG(Price) FROM Products);',
+        type: 'SQL',
+        rarity: 'uncommon'
+    },
+    {
+        id: 'sql_exists_subquery',
+        name: 'EXISTS (Subquery)',
+        emoji: '❓📦',
+        description: 'Используется для проверки существования строк, возвращаемых подзапросом.',
+        example: 'SELECT CustomerName FROM Customers WHERE EXISTS (SELECT OrderID FROM Orders WHERE Customers.CustomerID = Orders.CustomerID);',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_not_exists',
+        name: 'NOT EXISTS',
+        emoji: '🚫❓',
+        description: 'Используется для проверки отсутствия строк, возвращаемых подзапросом.',
+        example: 'SELECT CustomerName FROM Customers WHERE NOT EXISTS (SELECT OrderID FROM Orders WHERE Customers.CustomerID = Orders.CustomerID);',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_create_view',
+        name: 'CREATE VIEW',
+        emoji: '👁️‍🗨️',
+        description: 'Создает виртуальную таблицу, основанную на результате SQL-запроса.',
+        example: 'CREATE VIEW ActiveCustomers AS SELECT CustomerName, City FROM Customers WHERE IsActive = 1;',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_drop_view',
+        name: 'DROP VIEW',
+        emoji: '🚫👁️',
+        description: 'Удаляет представление (виртуальную таблицу).',
+        example: 'DROP VIEW ActiveCustomers;',
+        type: 'SQL',
+        rarity: 'uncommon'
+    },
+    {
+        id: 'sql_stored_procedure',
+        name: 'Хранимая Процедура',
+        emoji: '⚙️',
+        description: 'Набор операторов SQL, который может быть сохранен и выполнен многократно.',
+        example: 'CREATE PROCEDURE GetCustomersByCity @City NVARCHAR(50) AS SELECT * FROM Customers WHERE City = @City;',
+        type: 'SQL',
+        rarity: 'epic'
+    },
+    {
+        id: 'sql_function',
+        name: 'Пользовательская Функция',
+        emoji: '🔧',
+        description: 'Пользовательская функция, возвращающая скалярное значение или таблицу.',
+        example: 'CREATE FUNCTION GetTotalSales (@ProductID INT) RETURNS DECIMAL(10,2) AS BEGIN DECLARE @TotalSales DECIMAL(10,2); SELECT @TotalSales = SUM(Quantity * Price) FROM OrderDetails WHERE ProductID = @ProductID; RETURN @TotalSales; END;',
+        type: 'SQL',
+        rarity: 'epic'
+    },
+    {
+        id: 'sql_trigger',
+        name: 'Триггер (Trigger)',
+        emoji: '⚡',
+        description: 'Специальный тип хранимой процедуры, которая автоматически выполняется при возникновении события в базе данных.',
+        example: 'CREATE TRIGGER UpdateStock AFTER INSERT ON OrderDetails FOR EACH ROW UPDATE Products SET Stock = Stock - NEW.Quantity WHERE ProductID = NEW.ProductID;',
+        type: 'SQL',
+        rarity: 'legendary'
+    },
+    {
+        id: 'sql_transaction_begin',
+        name: 'BEGIN TRANSACTION',
+        emoji: '🎬',
+        description: 'Начинает транзакцию, группируя несколько операций в единое целое.',
+        example: 'BEGIN TRANSACTION; INSERT INTO Accounts ...;',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_transaction_commit',
+        name: 'COMMIT',
+        emoji: '✅',
+        description: 'Сохраняет все изменения, сделанные в текущей транзакции.',
+        example: 'COMMIT;',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_transaction_rollback',
+        name: 'ROLLBACK',
+        emoji: '↩️',
+        description: 'Отменяет все изменения, сделанные в текущей транзакции.',
+        example: 'ROLLBACK;',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_grant',
+        name: 'GRANT',
+        emoji: '🔑',
+        description: 'Предоставляет пользователю разрешения на базу данных.',
+        example: 'GRANT SELECT ON Customers TO \'user1\';',
+        type: 'SQL',
+        rarity: 'epic'
+    },
+    {
+        id: 'sql_revoke',
+        name: 'REVOKE',
+        emoji: '🚫🔑',
+        description: 'Отзывает разрешения у пользователя.',
+        example: 'REVOKE SELECT ON Products FROM \'user1\';',
+        type: 'SQL',
+        rarity: 'epic'
+    },
+    {
+        id: 'sql_denyz',
+        name: 'DENY',
+        emoji: '⛔',
+        description: 'Запрещает разрешения на объект базы данных.',
+        example: 'DENY DELETE ON Orders TO \'user2\';',
+        type: 'SQL',
+        rarity: 'epic'
+    },
+    {
+        id: 'sql_alter_index',
+        name: 'ALTER INDEX',
+        emoji: '🔧📖',
+        description: 'Изменяет свойства существующего индекса.',
+        example: 'ALTER INDEX idx_lastname ON Persons REBUILD;',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_drop_index',
+        name: 'DROP INDEX',
+        emoji: '🗑️📖',
+        description: 'Удаляет индекс.',
+        example: 'DROP INDEX idx_lastname ON Persons;',
+        type: 'SQL',
+        rarity: 'rare'
+    },
+    {
+        id: 'sql_top_with_ties',
+        name: 'TOP WITH TIES (SQL Server)',
+        emoji: '🔝🔗',
+        description: 'Возвращает указанное количество строк, включая строки с равными значениями, если они попадают в топ N.',
+        example: 'SELECT TOP 3 WITH TIES ProductName, Price FROM Products ORDER BY Price DESC;',
+        type: 'SQL',
+        rarity: 'epic'
+    },
+    {
+        id: 'sql_partition_by',
+        name: 'PARTITION BY',
+        emoji: '🧩',
+        description: 'Разделяет результирующий набор на разделы, к которым применяется оконная функция.',
+        example: 'SELECT EmployeeName, Department, Salary, AVG(Salary) OVER (PARTITION BY Department) AS AvgDeptSalary FROM Employees;',
+        type: 'SQL',
+        rarity: 'epic'
+    },
+    {
+        id: 'sql_lag',
+        name: 'LAG()',
+        emoji: '⏪',
+        description: 'Получает значение из предыдущей строки в том же результирующем наборе без использования SELF JOIN.',
+        example: 'SELECT OrderID, OrderDate, LAG(OrderDate, 1, \'1900-01-01\') OVER (ORDER BY OrderDate) AS PreviousOrderDate FROM Orders;',
+        type: 'SQL',
+        rarity: 'epic'
+    },
+    {
+        id: 'sql_lead',
+        name: 'LEAD()',
+        emoji: '⏩',
+        description: 'Получает значение из последующей строки в том же результирующем наборе.',
+        example: 'SELECT OrderID, OrderDate, LEAD(OrderDate, 1, \'2999-12-31\') OVER (ORDER BY OrderDate) AS NextOrderDate FROM Orders;',
+        type: 'SQL',
+        rarity: 'epic'
+    },
+    {
+        id: 'sql_recursive_cte',
+        name: 'Рекурсивный CTE (WITH RECURSIVE)',
+        emoji: '♾️🧠',
+        description: 'CTE, которое ссылается на себя, для обхода иерархических или графовых структур.',
+        example: 'WITH RECURSIVE EmployeeHierarchy AS (SELECT EmployeeID, EmployeeName, ManagerID, 1 AS Level FROM Employees WHERE ManagerID IS NULL UNION ALL SELECT e.EmployeeID, e.EmployeeName, e.ManagerID, eh.Level + 1 FROM Employees e JOIN EmployeeHierarchy eh ON e.ManagerID = eh.EmployeeID) SELECT * FROM EmployeeHierarchy;',
+        type: 'SQL',
+        rarity: 'legendary'
+    },
+    {
+        id: 'sql_materialized_view',
+        name: 'Материализованное Представление (MV)',
+        emoji: '💾👁️‍🗨️',
+        description: 'Представление, которое хранит результат запроса физически, а не вычисляет его каждый раз.',
+        example: 'CREATE MATERIALIZED VIEW mv_daily_sales AS SELECT OrderDate, SUM(TotalAmount) AS DailySales FROM Orders GROUP BY OrderDate;',
+        type: 'SQL',
+        rarity: 'legendary'
     }
 ];
