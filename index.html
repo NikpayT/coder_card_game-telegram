@@ -49,8 +49,8 @@
             background-color: #007bff;
             color: white;
             transition: background-color 0.2s;
-            flex-grow: 1; /* Чтобы кнопки занимали больше места */
-            min-width: 120px; /* Минимальная ширина для кнопок */
+            flex-grow: 1;
+            min-width: 120px;
         }
         button:hover {
             background-color: #0056b3;
@@ -59,7 +59,16 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
-        .collection-item, .shop-item {
+        .reset-button { /* Стиль для кнопки сброса */
+            background-color: #dc3545; /* Красный цвет */
+            margin-top: 15px;
+        }
+        .reset-button:hover {
+            background-color: #c82333;
+        }
+
+        /* Общие стили для элементов списков (коллекция, магазин) */
+        .list-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -69,34 +78,42 @@
             border-radius: 4px;
             text-align: left;
             position: relative;
-            cursor: pointer;
-            flex-wrap: wrap; /* Для переноса описания */
+            flex-wrap: wrap;
         }
-        .collection-item-main, .shop-item-main {
+        .list-item-main {
             flex-grow: 1;
-            padding-right: 10px; /* Отступ от кнопки */
+            padding-right: 10px;
+            cursor: pointer; /* Для показа/скрытия описания */
         }
-        .collection-item-description, .shop-item-description {
+        .list-item-description {
             font-size: 0.9em;
             color: #666;
             margin-top: 5px;
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-out;
-            width: 100%; /* Описание занимает всю ширину */
+            width: 100%;
         }
-        .collection-item-description.show, .shop-item-description.show {
+        .list-item-description.show {
             max-height: 100px;
         }
         .item-action-button {
             padding: 5px 10px;
             font-size: 0.8em;
-            background-color: #28a745; /* Зеленая для покупки/продажи */
             margin-left: 10px;
-            flex-shrink: 0; /* Не сжимать кнопку */
+            flex-shrink: 0;
         }
-        .item-action-button.sell {
-            background-color: #dc3545; /* Красная для продажи */
+        .buy-button {
+            background-color: #28a745; /* Зеленый */
+        }
+        .buy-button:hover {
+            background-color: #218838;
+        }
+        .sell-button {
+            background-color: #dc3545; /* Красный */
+        }
+        .sell-button:hover {
+            background-color: #c82333;
         }
     </style>
 </head>
@@ -111,11 +128,11 @@
             <button id="collectButton">Найти SQL-функцию 🔍</button>
             <button id="viewCollectionButton">Моя коллекция SQL 🎒</button>
             <button id="createButton">Создать SQL-запрос 💡</button>
-            <button id="shopButton">Магазин 💰</button> </div>
+            <button id="shopButton">Магазин 💰</button>
+        </div>
 
         <div id="collectionDisplay" style="display: none; margin-top: 20px;">
-            <h3>Моя коллекция SQL:</h3>
-            <div id="collectionList">
+            <h3 id="collectionHeader">Моя коллекция SQL: (0/55)</h3> <div id="collectionList">
                 <p>Пока ничего нет...</p>
             </div>
             <button id="backFromCollection">Назад</button>
@@ -131,44 +148,40 @@
 
         <div id="shopPanel" style="display: none; margin-top: 20px;">
             <h3>Магазин SQL-функций:</h3>
-            <div class="buttons-container">
-                <button id="buyRandomButton">Купить случайную (1 🌟)</button>
-                <button id="sellPartsButton">Продать функцию (1 🌟)</button>
+            <div id="buyableItemsList">
+                <p>Все функции собраны!</p>
             </div>
-
-            <div id="sellList" style="display: none; margin-top: 15px;">
-                <h4>Выберите что продать:</h4>
-                <div id="sellableItemsList">
-                    <p>Нет функций для продажи.</p>
-                </div>
-            </div>
-
             <button id="backFromShop" style="margin-top: 20px;">Назад</button>
         </div>
 
+        <button id="resetGameButton" class="reset-button" style="display: none;">Начать игру заново (удалить все данные)</button>
     </div> <div style="font-size: 0.8em; color: #888; margin-top: 20px;">
-        Версия: <span id="gameVersion">0.2.0</span> </div>
+        Версия: <span id="gameVersion">0.3.0</span> </div>
 
     <script src="game_data.js"></script>
 
     <script>
+        // Игровая статистика и состояние
         let gameData = {
             message: "Добро пожаловать в игру!",
-            collection: [],
-            experience: 0, // НОВОЕ: Опыт/монеты игрока
-            currentView: 'main' // 'main', 'collection', 'create', 'shop', 'sell_mode'
+            collection: [], // Теперь элементы будут {id: 'sql_select', count: 1}
+            experience: 0,
+            currentView: 'main' // 'main', 'collection', 'create', 'shop'
         };
+
+        const PART_PRICE = 1; // Стоимость покупки/продажи одной функции
 
         // DOM-элементы
         const gameMessageElement = document.getElementById('gameMessage');
-        const experienceDisplay = document.getElementById('experienceDisplay'); // НОВОЕ
+        const experienceDisplay = document.getElementById('experienceDisplay');
         const buttonsContainer = document.querySelector('.buttons-container');
         const collectButton = document.getElementById('collectButton');
         const viewCollectionButton = document.getElementById('viewCollectionButton');
         const createButton = document.getElementById('createButton');
-        const shopButton = document.getElementById('shopButton'); // НОВОЕ
+        const shopButton = document.getElementById('shopButton');
 
         const collectionDisplay = document.getElementById('collectionDisplay');
+        const collectionHeader = document.getElementById('collectionHeader'); // Новый элемент
         const collectionList = document.getElementById('collectionList');
         const backFromCollectionButton = document.getElementById('backFromCollection');
 
@@ -176,13 +189,11 @@
         const availablePartsDiv = document.getElementById('availableParts');
         const backFromCreateButton = document.getElementById('backFromCreate');
 
-        // Элементы магазина (НОВЫЕ)
         const shopPanel = document.getElementById('shopPanel');
-        const buyRandomButton = document.getElementById('buyRandomButton');
-        const sellPartsButton = document.getElementById('sellPartsButton');
-        const sellList = document.getElementById('sellList');
-        const sellableItemsList = document.getElementById('sellableItemsList');
+        const buyableItemsList = document.getElementById('buyableItemsList'); // Заменили sellableItemsList
         const backFromShopButton = document.getElementById('backFromShop');
+
+        const resetGameButton = document.getElementById('resetGameButton'); // Новая кнопка
 
 
         // Инициализация Telegram Web App SDK
@@ -197,18 +208,19 @@
         // --- Управление UI и состояниями ---
         function updateUI() {
             gameMessageElement.textContent = gameData.message;
-            experienceDisplay.textContent = `Опыт: ${gameData.experience} 🌟`; // Обновляем опыт
+            experienceDisplay.textContent = `Опыт: ${gameData.experience} 🌟`;
 
             // Скрываем все панели
             buttonsContainer.style.display = 'none';
             collectionDisplay.style.display = 'none';
             createPanel.style.display = 'none';
             shopPanel.style.display = 'none';
-            sellList.style.display = 'none'; // Скрываем список продажи по умолчанию
+            resetGameButton.style.display = 'none'; // Скрываем кнопку сброса по умолчанию
 
             // Показываем нужную панель в зависимости от текущего вида
             if (gameData.currentView === 'main') {
                 buttonsContainer.style.display = 'flex';
+                resetGameButton.style.display = 'block'; // Показываем на главной
             } else if (gameData.currentView === 'collection') {
                 collectionDisplay.style.display = 'block';
                 renderCollection();
@@ -217,36 +229,42 @@
                 renderCreatePanel();
             } else if (gameData.currentView === 'shop') {
                 shopPanel.style.display = 'block';
-                // При входе в магазин, скрываем список продажи, если он был открыт
-                sellList.style.display = 'none';
-            } else if (gameData.currentView === 'sell_mode') { // Режим продажи внутри магазина
-                shopPanel.style.display = 'block';
-                sellList.style.display = 'block';
-                renderSellableItems();
+                renderShopItems(); // Перерисовываем список для магазина
             }
-
-            // Управление кнопкой покупки
-            buyRandomButton.disabled = gameData.experience < 1;
         }
 
         function renderCollection() {
+            // Обновляем заголовок коллекции
+            const uniquePartsCount = gameData.collection.length;
+            const totalPartsCount = ALL_CODE_PARTS.length;
+            collectionHeader.textContent = `Моя коллекция SQL: (${uniquePartsCount}/${totalPartsCount})`;
+
             if (gameData.collection.length === 0) {
                 collectionList.innerHTML = '<p>Пока ничего нет...</p>';
             } else {
                 collectionList.innerHTML = '';
-                gameData.collection.forEach(item => {
+                // Сортируем коллекцию по названию для удобства
+                const sortedCollection = [...gameData.collection].sort((a, b) => a.name.localeCompare(b.name));
+
+                sortedCollection.forEach(item => {
                     const div = document.createElement('div');
-                    div.className = 'collection-item';
+                    div.className = 'list-item'; // Общий класс для списков
                     div.innerHTML = `
-                        <div class="collection-item-main">
-                            ${item.emoji} ${item.name}
-                            <div class="collection-item-description" id="desc-${item.id}">
+                        <div class="list-item-main" id="coll-main-${item.id}">
+                            ${item.emoji} ${item.name} (x${item.count}) <div class="list-item-description" id="coll-desc-${item.id}">
                                 ${item.description}
                             </div>
                         </div>
+                        <button class="item-action-button sell-button" data-item-id="${item.id}">Продать (${PART_PRICE} 🌟)</button>
                     `;
-                    div.onclick = () => { // Обработчик клика для показа/скрытия описания
-                        const descElement = document.getElementById(`desc-${item.id}`);
+                    // Обработчик для кнопки "Продать"
+                    div.querySelector('.sell-button').onclick = (event) => {
+                        event.stopPropagation(); // Предотвращаем срабатывание клика на родительском div
+                        sellPart(item.id);
+                    };
+                    // Обработчик для показа/скрытия описания по клику на элемент
+                    div.querySelector('.list-item-main').onclick = () => {
+                        const descElement = document.getElementById(`coll-desc-${item.id}`);
                         if (descElement) {
                             descElement.classList.toggle('show');
                         }
@@ -261,11 +279,12 @@
                 availablePartsDiv.innerHTML = '<p>Сначала соберите SQL-функции, чтобы что-то создать!</p>';
             } else {
                 availablePartsDiv.innerHTML = '<p>Выберите функции из вашей коллекции для "сборки":</p>';
-                availablePartsDiv.innerHTML = ''; // Очищаем содержимое перед добавлением новых кнопок
+                availablePartsDiv.innerHTML = '';
 
+                // Пока просто отображаем кнопки, без логики сборки
                 gameData.collection.forEach(item => {
                     const button = document.createElement('button');
-                    button.textContent = `${item.emoji} ${item.name}`;
+                    button.textContent = `${item.emoji} ${item.name} (x${item.count})`;
                     button.onclick = () => selectPartToCreate(item.id);
                     availablePartsDiv.appendChild(button);
                 });
@@ -282,87 +301,109 @@
             }
         }
 
-        function renderSellableItems() {
-            if (gameData.collection.length === 0) {
-                sellableItemsList.innerHTML = '<p>Нет функций для продажи.</p>';
+        function renderShopItems() {
+            // Находим все части, которых НЕТ в коллекции игрока
+            const buyableParts = ALL_CODE_PARTS.filter(part => {
+                // Проверяем, есть ли такой ID в коллекции (не важно, сколько их)
+                return !gameData.collection.some(item => item.id === part.id);
+            });
+
+            if (buyableParts.length === 0) {
+                buyableItemsList.innerHTML = '<p>Все доступные функции собраны! 🏆</p>';
             } else {
-                sellableItemsList.innerHTML = '';
-                gameData.collection.forEach(item => {
+                buyableItemsList.innerHTML = '';
+                // Сортируем список для магазина
+                const sortedBuyableParts = [...buyableParts].sort((a, b) => a.name.localeCompare(b.name));
+
+                sortedBuyableParts.forEach(item => {
                     const div = document.createElement('div');
-                    div.className = 'shop-item'; // Используем shop-item для стилизации
+                    div.className = 'list-item';
                     div.innerHTML = `
-                        <div class="shop-item-main">
+                        <div class="list-item-main" id="shop-main-${item.id}">
                             ${item.emoji} ${item.name}
-                            <div class="shop-item-description" id="shop-desc-${item.id}">
+                            <div class="list-item-description" id="shop-desc-${item.id}">
                                 ${item.description}
                             </div>
                         </div>
-                        <button class="item-action-button sell" data-item-id="${item.id}">Продать (1 🌟)</button>
+                        <button class="item-action-button buy-button" data-item-id="${item.id}">Купить (${PART_PRICE} 🌟)</button>
                     `;
-                    // Обработчик для кнопки "Продать"
-                    div.querySelector('.item-action-button').onclick = (event) => {
-                        event.stopPropagation(); // Предотвращаем срабатывание клика на родительском div
-                        sellPart(item.id);
+                    // Управление состоянием кнопки "Купить"
+                    const buyButton = div.querySelector('.buy-button');
+                    buyButton.disabled = gameData.experience < PART_PRICE; // Если опыта не хватает, кнопка неактивна
+                    buyButton.onclick = (event) => {
+                        event.stopPropagation();
+                        buyPart(item.id);
                     };
-                    // Обработчик для показа/скрытия описания по клику на элемент
-                    div.onclick = () => {
+                    // Обработчик для показа/скрытия описания по клику
+                    div.querySelector('.list-item-main').onclick = () => {
                         const descElement = document.getElementById(`shop-desc-${item.id}`);
                         if (descElement) {
                             descElement.classList.toggle('show');
                         }
                     };
-                    sellableItemsList.appendChild(div);
+                    buyableItemsList.appendChild(div);
                 });
             }
         }
 
+
         // --- Логика игры ---
         function selectPartToCreate(partId) {
-            const selectedPart = gameData.collection.find(p => p.id === partId);
+            const selectedPart = ALL_CODE_PARTS.find(p => p.id === partId); // Ищем в общем списке для полного описания
             if (selectedPart) {
                 gameData.message = `Вы выбрали "${selectedPart.name}" для создания! 🤔 (нужно выбрать несколько для "сборки")`;
                 updateUI();
             }
         }
 
-        // --- Новая логика покупки/продажи ---
-        function buyRandomPart() {
-            if (gameData.experience < 1) {
+        // Логика покупки
+        function buyPart(partId) {
+            if (gameData.experience < PART_PRICE) {
                 gameData.message = 'Недостаточно опыта для покупки! 🚫';
                 updateUI();
                 return;
             }
 
-            // Находим все части, которых НЕТ в коллекции игрока
-            const missingParts = ALL_CODE_PARTS.filter(part => !gameData.collection.some(item => item.id === part.id));
-
-            if (missingParts.length === 0) {
-                gameData.message = 'Вы собрали все доступные SQL-функции! 🎉';
+            const partToBuy = ALL_CODE_PARTS.find(part => part.id === partId);
+            if (!partToBuy) {
+                gameData.message = 'Ошибка: функция не найдена.';
                 updateUI();
                 return;
             }
 
-            const randomIndex = Math.floor(Math.random() * missingParts.length);
-            const boughtPart = missingParts[randomIndex];
+            // Проверяем, есть ли уже такая функция в коллекции
+            const existingPartIndex = gameData.collection.findIndex(item => item.id === partId);
 
-            gameData.collection.push({...boughtPart});
-            gameData.experience -= 1; // Тратим 1 опыт
-            gameData.message = `Вы купили новую SQL-функцию! 🎉 ${boughtPart.emoji} ${boughtPart.name} (-1 🌟)`;
+            if (existingPartIndex === -1) { // Если нет в коллекции (покупаем уникальную)
+                gameData.collection.push({...partToBuy, count: 1});
+            } else { // Если уже есть, увеличиваем счетчик
+                gameData.collection[existingPartIndex].count++;
+            }
+
+            gameData.experience -= PART_PRICE;
+            gameData.message = `Вы купили ${partToBuy.emoji} ${partToBuy.name}! (-${PART_PRICE} 🌟)`;
             updateUI();
         }
 
+        // Логика продажи
         function sellPart(partId) {
-            const indexToSell = gameData.collection.findIndex(item => item.id === partId);
+            const existingPartIndex = gameData.collection.findIndex(item => item.id === partId);
 
-            if (indexToSell !== -1) {
-                const soldPart = gameData.collection.splice(indexToSell, 1)[0]; // Удаляем и получаем проданный элемент
-                gameData.experience += 1; // Получаем 1 опыт
-                gameData.message = `Вы продали ${soldPart.emoji} ${soldPart.name}! (+1 🌟)`;
-                updateUI();
+            if (existingPartIndex !== -1) {
+                const soldPart = gameData.collection[existingPartIndex];
+
+                if (soldPart.count > 1) { // Если таких функций несколько, уменьшаем счетчик
+                    soldPart.count--;
+                    gameData.message = `Вы продали ${soldPart.emoji} ${soldPart.name}! Теперь у вас их ${soldPart.count}. (+${PART_PRICE} 🌟)`;
+                } else { // Если функция одна, удаляем её из коллекции
+                    gameData.collection.splice(existingPartIndex, 1);
+                    gameData.message = `Вы продали последнюю ${soldPart.emoji} ${soldPart.name}! (+${PART_PRICE} 🌟)`;
+                }
+                gameData.experience += PART_PRICE;
             } else {
-                gameData.message = 'Этой функции нет в вашей коллекции!';
-                updateUI();
+                gameData.message = 'Ошибка: этой функции нет в вашей коллекции для продажи.';
             }
+            updateUI();
         }
 
         // --- Обработчики событий кнопок ---
@@ -370,13 +411,18 @@
             const randomIndex = Math.floor(Math.random() * ALL_CODE_PARTS.length);
             const foundPart = ALL_CODE_PARTS[randomIndex];
 
-            // Проверяем, есть ли уже такая часть в коллекции
-            if (!gameData.collection.some(item => item.id === foundPart.id)) {
-                gameData.collection.push({...foundPart});
-                gameData.experience += 1; // Даем опыт за находку
+            const existingPartIndex = gameData.collection.findIndex(item => item.id === foundPart.id);
+
+            if (existingPartIndex === -1) {
+                // Добавляем новую уникальную часть с count = 1
+                gameData.collection.push({...foundPart, count: 1});
+                gameData.experience += 1;
                 gameData.message = `Вы нашли новую SQL-функцию! 🎉 ${foundPart.emoji} ${foundPart.name} (+1 🌟)`;
             } else {
-                gameData.message = `Вы нашли ${foundPart.emoji} ${foundPart.name}, но она у вас уже есть! Поищите что-то другое... 😅`;
+                // Увеличиваем счетчик существующей части
+                gameData.collection[existingPartIndex].count++;
+                gameData.experience += 1;
+                gameData.message = `Вы нашли ${foundPart.emoji} ${foundPart.name} (уже есть)! Теперь у вас их ${gameData.collection[existingPartIndex].count}. (+1 🌟)`;
             }
             updateUI();
         });
@@ -393,17 +439,9 @@
             updateUI();
         });
 
-        shopButton.addEventListener('click', () => { // НОВЫЙ обработчик для магазина
+        shopButton.addEventListener('click', () => {
             gameData.currentView = 'shop';
             gameData.message = 'Добро пожаловать в магазин!';
-            updateUI();
-        });
-
-        buyRandomButton.addEventListener('click', buyRandomPart); // НОВЫЙ обработчик для покупки
-
-        sellPartsButton.addEventListener('click', () => { // НОВЫЙ обработчик для продажи
-            gameData.currentView = 'sell_mode';
-            gameData.message = 'Выберите функцию для продажи:';
             updateUI();
         });
 
@@ -420,47 +458,16 @@
             updateUI();
         });
 
-        backFromShopButton.addEventListener('click', () => { // НОВЫЙ обработчик для "Назад из магазина"
+        backFromShopButton.addEventListener('click', () => {
             gameData.currentView = 'main';
             gameData.message = 'Продолжайте приключения!';
             updateUI();
         });
 
-
-        // --- Сохранение/Загрузка игры ---
-        function saveGameData() {
-            localStorage.setItem('coderGameData', JSON.stringify(gameData));
-            console.log('Game data saved!');
-        }
-
-        function loadGameData() {
-            const savedData = localStorage.getItem('coderGameData');
-            if (savedData) {
-                const loadedGameData = JSON.parse(savedData);
-                // Загружаем опыт
-                gameData.experience = loadedGameData.experience || 0;
-
-                // Обновляем коллекцию, убедившись, что все поля из ALL_CODE_PARTS присутствуют
-                loadedGameData.collection = loadedGameData.collection.map(item => {
-                    const fullItem = ALL_CODE_PARTS.find(part => part.id === item.id);
-                    return fullItem ? {...fullItem} : item; // Если найдено, берем полную версию из ALL_CODE_PARTS
-                });
-                gameData.collection = loadedGameData.collection;
-                // gameData.message и currentView будут установлены в updateUI()
-            }
-        }
-
-        // --- Инициализация при старте ---
-        loadGameData(); // Загружаем данные
-        updateUI();     // Обновляем UI согласно загруженным данным
-        // Добавляем начальное сообщение после загрузки
-        if (gameData.message === "Добро пожаловать в игру!") { // Если сообщение не было изменено загрузкой
-             gameMessageElement.textContent = `Добро пожаловать обратно! У вас ${gameData.experience} 🌟`;
-        }
-
-
-        // Автоматическое сохранение каждые 5 секунд
-        setInterval(saveGameData, 5000);
-    </script>
-</body>
-</html>
+        resetGameButton.addEventListener('click', () => {
+            if (confirm('Вы уверены, что хотите начать игру заново? Все данные будут удалены!')) {
+                localStorage.removeItem('coderGameData');
+                gameData = { // Сброс до начального состояния
+                    message: "Игра начата заново! Добро пожаловать!",
+                    collection: [],
+                    experience:
