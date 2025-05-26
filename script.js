@@ -41,7 +41,7 @@ let gameData = {
         { id: 'proj_count_records', name: 'Подсчет записей', description: 'Посчитать количество записей в таблице.', requirements: ['sql_select', 'sql_count', 'sql_from'], completed: false, reward_xp: 20 },
         { id: 'proj_aggregate_data', name: 'Агрегация данных', description: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
     ],
-    queryConstructionProgress: {}, // Отслеживание выполненных заданий по созданию запросов { taskId: true }
+    queryConstructionProgress: {},
     currentView: 'main'
 };
 
@@ -61,11 +61,11 @@ let gameMessageElement, experienceDisplay, levelDisplay, levelProgressBar, energ
     modalPartName, modalPartDescription, modalPartType, modalPartExample, modalPartCount,
     modalSellButton, gameVersionDisplay;
 
-// Переменные для панели "Создать Запрос"
-let createQueryTaskDescription, createQueryAvailableFunctions, createQueryConstructionArea,
-    createQuerySubmitButton, createQueryCurrentTaskFeedback, createQueryTaskList; // Для списка заданий
+// НОВОЕ: Переменные для панели "Создать Запрос"
+let createQueryTaskList, createQueryTaskDescription, createQueryAvailableFunctions,
+    createQueryConstructionArea, createQuerySubmitButton, createQueryCurrentTaskFeedback;
 let currentQueryTaskId = null;
-let currentConstructedQuery = []; // Массив объектов {type: 'keyword'/'table'/'column'/'value', value: '...', originalId: 'sql_select'}
+let currentConstructedQuery = [];
 
 
 function initializeDOMElements() {
@@ -77,7 +77,7 @@ function initializeDOMElements() {
     mainButtonsContainer = document.getElementById('mainButtons');
     collectButton = document.getElementById('collectButton');
     viewCollectionButton = document.getElementById('viewCollectionButton');
-    createButton = document.getElementById('createButton');
+    createButton = document.getElementById('createButton'); // Кнопка для перехода на панель "Создать Запрос"
     shopButton = document.getElementById('shopButton');
     dailyBonusButton = document.getElementById('dailyBonusButton');
     achievementsButton = document.getElementById('achievementsButton');
@@ -90,16 +90,18 @@ function initializeDOMElements() {
     collectionHeader = document.getElementById('collectionHeader');
     collectionList = document.getElementById('collectionList');
     backFromCollectionButton = document.getElementById('backFromCollection');
-    createPanel = document.getElementById('createPanel'); // Уже есть
-    // Элементы для панели "Создать Запрос" - будут добавлены в HTML позже
+
+    // НОВОЕ: Инициализация элементов панели "Создать Запрос"
+    createPanel = document.getElementById('createPanel');
     createQueryTaskList = document.getElementById('createQueryTaskList');
     createQueryTaskDescription = document.getElementById('createQueryTaskDescription');
     createQueryAvailableFunctions = document.getElementById('createQueryAvailableFunctions');
     createQueryConstructionArea = document.getElementById('createQueryConstructionArea');
     createQuerySubmitButton = document.getElementById('createQuerySubmitButton');
     createQueryCurrentTaskFeedback = document.getElementById('createQueryCurrentTaskFeedback');
-
     backFromCreateButton = document.getElementById('backFromCreate');
+
+
     shopPanel = document.getElementById('shopPanel');
     buyableItemsList = document.getElementById('buyableItemsList');
     backFromShopButton = document.getElementById('backFromShop');
@@ -145,7 +147,6 @@ function initializeDOMElements() {
 if (window.Telegram && window.Telegram.WebApp) {
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
-    // Telegram.WebApp.MainButton.setText("TEST").show().onClick(() => console.log("Main button clicked"));
     console.log('Telegram WebApp initialized.');
 } else {
     console.warn('Telegram WebApp script not loaded or not in Telegram environment. Running in standalone mode.');
@@ -167,7 +168,6 @@ function updateUI() {
         gameVersionDisplay.textContent = GAME_VERSION;
     }
 
-
     const allPanels = [
         mainButtonsContainer, collectionDisplay, createPanel, shopPanel,
         dailyBonusPanel, achievementsPanel, statsPanel, projectPanel,
@@ -185,9 +185,9 @@ function updateUI() {
             if (collectionDisplay) collectionDisplay.style.display = 'block';
             renderCollection();
             break;
-        case 'create':
+        case 'create': // ИЗМЕНЕНО
             if (createPanel) createPanel.style.display = 'block';
-            renderQueryConstructionPanel(); // Новая функция для отображения панели создания запроса
+            renderQueryConstructionPanel();
             break;
         case 'shop':
             if (shopPanel) shopPanel.style.display = 'block';
@@ -225,7 +225,9 @@ function updateUI() {
     if (collectButton) collectButton.disabled = gameData.energy < ENERGY_CONSUMPTION_PER_ACTION;
 }
 
-// --- Рендеринг панелей (существующие функции без изменений, кроме renderCollection) ---
+// --- Рендеринг панелей ---
+// (renderCollection, showPartDetails, renderShopItems, renderMarketItems, renderAchievements, renderStats, renderProjects, renderBoosters, renderHistory - без изменений, кроме проверок на существование DOM элементов, которые уже были добавлены)
+// ... (Эти функции остаются как в предыдущей версии) ...
 function renderCollection() {
     if (!collectionHeader || !collectionList) return;
     const uniquePartsCount = gameData.collection.length;
@@ -264,37 +266,38 @@ function showPartDetails(partId, sourcePanel) {
     const part = ALL_CODE_PARTS.find(p => p.id === partId);
     const collectedPart = gameData.collection.find(item => item.id === partId);
 
-    if (part) {
+    if (part && modalPartName) { // Добавил проверку modalPartName
         modalPartName.textContent = `${part.emoji || '❓'} ${part.name}`;
-        modalPartDescription.textContent = part.description || 'Нет описания.';
-        modalPartType.textContent = part.type || 'Неизвестно';
-        modalPartExample.textContent = part.example || 'Пример недоступен.';
-        modalPartCount.textContent = collectedPart ? collectedPart.count : 0;
+        if (modalPartDescription) modalPartDescription.textContent = part.description || 'Нет описания.';
+        if (modalPartType) modalPartType.textContent = part.type || 'Неизвестно';
+        if (modalPartExample) modalPartExample.textContent = part.example || 'Пример недоступен.';
+        if (modalPartCount) modalPartCount.textContent = collectedPart ? collectedPart.count : 0;
 
-        modalSellButton.onclick = null;
-        if (sourcePanel === 'collection' && collectedPart && collectedPart.count > 0) {
-            modalSellButton.style.display = 'block';
-            modalSellButton.onclick = () => {
-                sellPart(part.id);
-                const updatedCollectedPart = gameData.collection.find(item => item.id === part.id);
-                if (!updatedCollectedPart || updatedCollectedPart.count === 0) {
-                    if (partDetailModal) partDetailModal.style.display = 'none';
-                } else {
-                    modalPartCount.textContent = updatedCollectedPart.count;
-                }
-                updateUI();
-            };
-        } else {
-            modalSellButton.style.display = 'none';
+        if (modalSellButton) {
+            modalSellButton.onclick = null;
+            if (sourcePanel === 'collection' && collectedPart && collectedPart.count > 0) {
+                modalSellButton.style.display = 'block';
+                modalSellButton.onclick = () => {
+                    sellPart(part.id);
+                    const updatedCollectedPart = gameData.collection.find(item => item.id === part.id);
+                    if (!updatedCollectedPart || updatedCollectedPart.count === 0) {
+                        if (partDetailModal) partDetailModal.style.display = 'none';
+                    } else {
+                        if (modalPartCount) modalPartCount.textContent = updatedCollectedPart.count;
+                    }
+                    updateUI();
+                };
+            } else {
+                modalSellButton.style.display = 'none';
+            }
         }
         if (partDetailModal) partDetailModal.style.display = 'flex';
     } else {
-        gameData.message = "Ошибка: Детали функции не найдены.";
+        gameData.message = "Ошибка: Детали функции не найдены или модальное окно не готово.";
         updateUI();
     }
 }
 
-// Обработчик для закрытия модального окна
 if (typeof closePartDetailModal !== 'undefined' && closePartDetailModal) {
     closePartDetailModal.onclick = () => {
         if (partDetailModal) partDetailModal.style.display = 'none';
@@ -385,7 +388,7 @@ function renderAchievements() {
     const allAchievements = Object.values(gameData.achievements);
     const sortedAchievements = allAchievements.sort((a, b) => {
         if (a.completed === b.completed) {
-            return a.name.localeCompare(b.name);
+            return (a.name || "").localeCompare(b.name || "");
         }
         return a.completed ? 1 : -1;
     });
@@ -409,9 +412,9 @@ function renderAchievements() {
 }
 
 function renderStats() {
-    if (!statsUniqueCount) return; // Проверка на случай если DOM не готов
+    if (!statsUniqueCount || !statsTotalCount || !statsExperienceEarned || !statsPartsSold || !statsPartsBought) return;
     statsUniqueCount.textContent = gameData.collection.length;
-    const totalParts = gameData.collection.reduce((sum, item) => sum + item.count, 0);
+    const totalParts = gameData.collection.reduce((sum, item) => sum + (item.count || 0), 0);
     statsTotalCount.textContent = totalParts;
     statsExperienceEarned.textContent = gameData.totalXpEarned;
     statsPartsSold.textContent = gameData.partsSold;
@@ -437,7 +440,7 @@ function renderProjects() {
             const hasPart = gameData.collection.some(item => item.id === reqId && item.count > 0);
             const metClass = hasPart ? 'requirement-met' : '';
             if (!hasPart) allRequirementsMet = false;
-            requirementsHtml += `<li class="${metClass}">${(requiredPart && requiredPart.emoji) || '❓'} ${requiredPart ? requiredPart.name : 'Неизвестная функция'} ${hasPart ? '✓' : '✗'}</li>`;
+            requirementsHtml += `<li class="${metClass}">${(requiredPart && requiredPart.emoji) || '❓'} ${requiredPart ? (requiredPart.name || 'Неизвестно') : 'Неизвестная функция'} ${hasPart ? '✓' : '✗'}</li>`;
         });
         requirementsHtml += '</ul>';
 
@@ -513,17 +516,18 @@ function renderHistory() {
         });
     }
 }
-// script.js - Основная логика игры "SQL Code Collector Game" (Продолжение)
 
-// ... (начало файла script.js до функции addExperience)
+// --- Логика игры (продолжение) ---
+// (addExperience, checkLevelUp, checkAchievements, buyPart, buyPartFromMarket, sellPart, updateEnergy, checkDailyBonusAvailability, claimDailyBonus, completeProject, buyBooster, cleanExpiredBoosters, addHistoryEntry, formatTime, handleStudyFunction - остаются как в предыдущей полной версии)
+// ... (эти функции были в предыдущем полном варианте script.js) ...
 
-// --- Логика игры ---
 function addExperience(amount) {
     let actualAmount = amount;
     const xpBooster = gameData.activeBoosters.find(b => b.id === 'xp_boost' && b.endsAt > Date.now());
     if (xpBooster && xpBooster.effect && typeof xpBooster.effect.value === 'number') {
         actualAmount *= xpBooster.effect.value;
     }
+    actualAmount = Math.round(actualAmount); // Округляем опыт
 
     gameData.experience += actualAmount;
     gameData.currentXp += actualAmount;
@@ -546,7 +550,7 @@ function checkLevelUp() {
 }
 
 function checkAchievements() {
-    if (typeof ALL_CODE_PARTS === 'undefined') return; // Убедимся, что ALL_CODE_PARTS загружен
+    if (typeof ALL_CODE_PARTS === 'undefined') return;
     const uniquePartsCount = gameData.collection.length;
     const completedProjectsCount = gameData.projects.filter(p => p.completed).length;
 
@@ -752,7 +756,7 @@ function buyBooster(boosterId) {
         return;
     }
 
-    if (booster.duration && gameData.activeBoosters.some(b => b.id === boosterId && b.endsAt > Date.now())) {
+    if (booster.duration && gameData.activeBoosters.some(b => b.id === booster.id && b.endsAt > Date.now())) {
          gameData.message = `${booster.name} уже активен!`;
          updateUI();
          return;
@@ -788,7 +792,7 @@ function cleanExpiredBoosters() {
 
 function addHistoryEntry(text) {
     gameData.history.push({ timestamp: Date.now(), message: text });
-    if (gameData.history.length > 50) { // Ограничение на 50 записей
+    if (gameData.history.length > 50) {
         gameData.history = gameData.history.slice(gameData.history.length - 50);
     }
 }
@@ -833,40 +837,375 @@ function handleStudyFunction() {
         });
     }
 
-
     if (weightedParts.length === 0 && typeof ALL_CODE_PARTS !== 'undefined' && ALL_CODE_PARTS.length > 0) {
         const commonParts = ALL_CODE_PARTS.filter(p => p.rarity === 'common');
         foundPart = commonParts.length > 0 ? commonParts[Math.floor(Math.random() * commonParts.length)] : ALL_CODE_PARTS[0];
     } else if (weightedParts.length > 0) {
         foundPart = weightedParts[Math.floor(Math.random() * weightedParts.length)];
     } else {
-         // Заглушка, если что-то пошло не так
          foundPart = { id: 'default_error', name: 'Неизвестная функция', emoji: '❓', description: '', example: '', type: '', rarity: 'common' };
     }
 
     const existingPart = gameData.collection.find(item => item.id === foundPart.id);
 
     if (!existingPart) {
-        gameData.collection.push({...foundPart, count: 1}); // Сохраняем полную копию объекта с count
+        gameData.collection.push({...foundPart, count: 1});
         addExperience(1);
         gameData.message = `Вы изучили новую SQL-функцию! 🎉 ${foundPart.emoji || '❓'} ${foundPart.name} (+1 🌟)`;
         addHistoryEntry(`Изучена новая SQL-функция: ${foundPart.name}`);
     }
     else {
         existingPart.count++;
-        addExperience(1); // Опыт за дубликат
+        addExperience(1);
         gameData.message = `Вы изучили ${foundPart.emoji || '❓'} ${foundPart.name} (уже изучена)! Теперь у вас их ${existingPart.count}. (+1 🌟)`;
         addHistoryEntry(`Повторно изучена функция: ${foundPart.name} (x${existingPart.count})`);
     }
-    checkAchievements(); // Проверяем ачивки после каждого изучения
+    checkAchievements();
     updateUI();
 }
 
+
+// --- Функции для Механики "Создать Запрос" --- // НОВОЕ / ИЗМЕНЕНО
+function renderQueryConstructionPanel() {
+    if (!createPanel || typeof QUERY_CONSTRUCTION_TASKS === 'undefined' || typeof ALL_CODE_PARTS === 'undefined') {
+        if (createPanel) createPanel.innerHTML = '<p>Ошибка загрузки данных для конструктора запросов.</p>';
+        return;
+    }
+    if (!createQueryTaskList || !createQueryTaskDescription || !createQueryAvailableFunctions || !createQueryConstructionArea || !createQuerySubmitButton || !createQueryCurrentTaskFeedback) {
+         // Это сообщение теперь будет в HTML по умолчанию, если элементы не найдены
+        console.warn("Не все DOM элементы для конструктора запросов найдены. HTML структура верна?");
+        const placeholderDiv = createPanel.querySelector('div'); // Ищем первый div внутри createPanel
+        if (placeholderDiv && !placeholderDiv.id.startsWith('createQuery')) { // Убедимся, что это не один из наших целевых div
+             placeholderDiv.innerHTML = `<p>Интерфейс создания запросов в разработке. Ожидайте!</p>`;
+        } else if (createPanel.firstChild.nodeName === "#text" || createPanel.children.length < 2) { // Если панель почти пуста
+            createPanel.innerHTML = '<h3>Создание SQL-запроса:</h3><p>Интерфейс создания запросов в разработке. Ожидайте!</p><button id="backFromCreate" class="secondary-button" style="margin-top: 20px;">Назад</button>';
+            // Перепривязываем кнопку "Назад", если она была затерта
+            backFromCreateButton = document.getElementById('backFromCreate');
+            if (backFromCreateButton) backFromCreateButton.addEventListener('click', () => setGameView('main'));
+        }
+        return;
+    }
+
+    // 1. Отображение списка заданий
+    createQueryTaskList.innerHTML = '';
+    let hasUncompletedTasks = false;
+    QUERY_CONSTRUCTION_TASKS.forEach(task => {
+        const taskItem = document.createElement('div');
+        taskItem.className = 'query-task-list-item';
+        taskItem.textContent = task.name;
+        taskItem.dataset.taskId = task.id;
+        if (gameData.queryConstructionProgress[task.id]) {
+            taskItem.classList.add('completed-task');
+        } else {
+            hasUncompletedTasks = true;
+        }
+        if (task.id === currentQueryTaskId) {
+            taskItem.classList.add('active-task');
+        }
+        taskItem.onclick = () => {
+            if (!gameData.queryConstructionProgress[task.id]) { // Можно выбирать только невыполненные или текущее для пересмотра
+                currentQueryTaskId = task.id;
+                currentConstructedQuery = []; // Сбрасываем собранный запрос при смене задания
+                if (createQueryCurrentTaskFeedback) createQueryCurrentTaskFeedback.textContent = ''; // Очищаем фидбек
+                if (createQueryCurrentTaskFeedback) createQueryCurrentTaskFeedback.className = '';
+                renderQueryConstructionPanel(); // Перерисовать всю панель
+            }
+        };
+        createQueryTaskList.appendChild(taskItem);
+    });
+
+    if (!hasUncompletedTasks && QUERY_CONSTRUCTION_TASKS.length > 0) {
+        createQueryTaskList.innerHTML += '<p style="text-align:center; margin-top:10px; color:var(--primary-color);">Все задания по созданию запросов выполнены! 🎉</p>';
+    }
+
+
+    // 2. Отображение текущего задания
+    const currentTask = QUERY_CONSTRUCTION_TASKS.find(t => t.id === currentQueryTaskId);
+    if (currentTask) {
+        createQueryTaskDescription.innerHTML = `<h4>${currentTask.name}</h4><p>${currentTask.description}</p>`;
+        createQuerySubmitButton.disabled = false;
+
+        // 3. Отображение доступных функций и значений для текущего задания
+        createQueryAvailableFunctions.innerHTML = '';
+        // Доступные ключевые слова (изученные игроком и подходящие для задания)
+        // Для упрощения пока показываем все изученные функции. Позже можно фильтровать по task.requiredFunctions или по контексту.
+        gameData.collection.forEach(collectedFunc => {
+            const funcData = ALL_CODE_PARTS.find(f => f.id === collectedFunc.id);
+            if (funcData) {
+                const btn = document.createElement('button');
+                btn.className = 'available-function-btn';
+                btn.innerHTML = `${funcData.emoji || ''} ${funcData.name}`;
+                btn.onclick = () => addElementToQuery('keyword', funcData.name.split('(')[0].trim(), funcData.id); // Берем только сам оператор без ()
+                createQueryAvailableFunctions.appendChild(btn);
+            }
+        });
+
+        // Доступные таблицы (из задания)
+        if (currentTask.availableTables && currentTask.availableTables.length > 0) {
+            currentTask.availableTables.forEach(tableName => {
+                const btn = document.createElement('button');
+                btn.className = 'available-value-btn';
+                btn.style.backgroundColor = '#61AFEF'; // Голубой для таблиц
+                btn.textContent = tableName;
+                btn.onclick = () => addElementToQuery('table', tableName);
+                createQueryAvailableFunctions.appendChild(btn);
+            });
+        }
+        // Доступные колонки (из задания, для текущей выбранной таблицы, если есть)
+        // Это можно усложнить: показывать колонки только после выбора FROM table
+        if (currentTask.availableColumns) {
+             // Пока упрощенно - все колонки всех таблиц задания
+            for (const tableName in currentTask.availableColumns) {
+                currentTask.availableColumns[tableName].forEach(columnName => {
+                     const btn = document.createElement('button');
+                    btn.className = 'available-value-btn';
+                    btn.style.backgroundColor = '#98C379'; // Зеленый для колонок
+                    btn.textContent = columnName;
+                    btn.onclick = () => addElementToQuery('column', columnName);
+                    createQueryAvailableFunctions.appendChild(btn);
+                });
+            }
+        }
+        // Кнопка для '*'
+        const starBtn = document.createElement('button');
+        starBtn.className = 'available-value-btn';
+        starBtn.textContent = '*';
+        starBtn.onclick = () => addElementToQuery('value', '*');
+        createQueryAvailableFunctions.appendChild(starBtn);
+
+        // Кнопка для ввода текстового значения (например, для WHERE ... = 'текст')
+        const textValueBtn = document.createElement('button');
+        textValueBtn.className = 'available-value-btn';
+        textValueBtn.textContent = "'текст'";
+        textValueBtn.onclick = () => {
+            const val = prompt("Введите текстовое значение (без кавычек):");
+            if (val !== null && val.trim() !== "") {
+                addElementToQuery('value', `'${val.trim()}'`); // Добавляем кавычки
+            }
+        };
+        createQueryAvailableFunctions.appendChild(textValueBtn);
+
+        // Кнопка для ввода числового значения
+        const numValueBtn = document.createElement('button');
+        numValueBtn.className = 'available-value-btn';
+        numValueBtn.textContent = "число";
+        numValueBtn.onclick = () => {
+            const val = prompt("Введите числовое значение:");
+            if (val !== null && !isNaN(parseFloat(val)) && isFinite(val)) {
+                addElementToQuery('value', parseFloat(val));
+            } else if (val !== null) {
+                alert("Пожалуйста, введите корректное число.");
+            }
+        };
+        createQueryAvailableFunctions.appendChild(numValueBtn);
+
+
+    } else {
+        createQueryTaskDescription.innerHTML = `<p>Выберите задание из списка или все задания выполнены.</p>`;
+        createQueryAvailableFunctions.innerHTML = '';
+        if(createQuerySubmitButton) createQuerySubmitButton.disabled = true;
+    }
+
+    // 4. Отображение собираемого запроса
+    renderConstructedQuery();
+}
+
+function selectQueryTaskFromList(taskId) {
+    if (!gameData.queryConstructionProgress[taskId]) {
+        currentQueryTaskId = taskId;
+        currentConstructedQuery = [];
+        if (createQueryCurrentTaskFeedback) {
+            createQueryCurrentTaskFeedback.textContent = '';
+            createQueryCurrentTaskFeedback.className = '';
+        }
+        renderQueryConstructionPanel();
+    }
+}
+
+
+function selectNextQueryTask() {
+    if (typeof QUERY_CONSTRUCTION_TASKS === 'undefined') return;
+    // currentQueryTaskId = null; // Не сбрасываем здесь, чтобы при первом заходе не было пусто
+    // currentConstructedQuery = []; // Сбрасывается при явном выборе задания
+
+    let firstUncompletedTask = null;
+    for (const task of QUERY_CONSTRUCTION_TASKS) {
+        if (!gameData.queryConstructionProgress[task.id]) {
+            firstUncompletedTask = task;
+            break;
+        }
+    }
+
+    if (firstUncompletedTask) {
+        // Если текущее задание уже есть и оно не выполнено, оставляем его.
+        // Иначе, если текущего нет или оно выполнено, ставим первое невыполненное.
+        if (!currentQueryTaskId || gameData.queryConstructionProgress[currentQueryTaskId]) {
+            currentQueryTaskId = firstUncompletedTask.id;
+            currentConstructedQuery = []; // Сброс для нового задания
+             if (createQueryCurrentTaskFeedback) { // Очистка фидбека при авто-выборе
+                createQueryCurrentTaskFeedback.textContent = '';
+                createQueryCurrentTaskFeedback.className = '';
+            }
+        }
+    } else {
+        // Все задания выполнены
+        if (currentQueryTaskId && !gameData.queryConstructionProgress[currentQueryTaskId]) {
+            // Остаемся на текущем невыполненном, если такое есть (хотя логика выше должна была это покрыть)
+        } else {
+            currentQueryTaskId = null; // Явно указываем, что активных нет
+            currentConstructedQuery = [];
+        }
+    }
+}
+
+function addElementToQuery(type, value, originalId = null) {
+    currentConstructedQuery.push({ type, value, originalId });
+    renderConstructedQuery();
+}
+
+function renderConstructedQuery() {
+    if (!createQueryConstructionArea) return;
+    createQueryConstructionArea.innerHTML = currentConstructedQuery.map((el, index) => {
+        let displayValue = el.value;
+        if (el.type === 'keyword' && el.originalId && typeof ALL_CODE_PARTS !== 'undefined') {
+            const funcData = ALL_CODE_PARTS.find(f => f.id === el.originalId);
+            displayValue = funcData ? `${funcData.emoji || ''} ${funcData.name.split('(')[0].trim()}` : el.value;
+        } else if (Array.isArray(el.value)) {
+            displayValue = el.value.join(', ');
+        }
+        return `<span class="query-element query-element-${el.type}" data-index="${index}" title="Кликните для удаления">${displayValue}</span>`;
+    }).join(' ');
+
+    createQueryConstructionArea.querySelectorAll('.query-element').forEach(span => {
+        span.onclick = (e) => {
+            const index = parseInt(e.target.dataset.index);
+            if (!isNaN(index) && index >= 0 && index < currentConstructedQuery.length) {
+                currentConstructedQuery.splice(index, 1);
+                renderConstructedQuery();
+            }
+        };
+    });
+}
+
+
+function handleSubmitConstructedQuery() {
+    if (!currentQueryTaskId || typeof QUERY_CONSTRUCTION_TASKS === 'undefined' || !createQueryCurrentTaskFeedback) {
+        if (createQueryCurrentTaskFeedback) {
+            createQueryCurrentTaskFeedback.textContent = "Нет активного задания для проверки.";
+            createQueryCurrentTaskFeedback.className = 'feedback-error';
+        }
+        return;
+    }
+    const task = QUERY_CONSTRUCTION_TASKS.find(t => t.id === currentQueryTaskId);
+    if (!task) {
+        createQueryCurrentTaskFeedback.textContent = "Ошибка: текущее задание не найдено.";
+        createQueryCurrentTaskFeedback.className = 'feedback-error';
+        return;
+    }
+
+    // Упрощенная логика проверки
+    let allRequiredFunctionsUsed = (task.requiredFunctions || []).every(reqFuncId =>
+        currentConstructedQuery.some(el => el.originalId === reqFuncId && el.type === 'keyword')
+    );
+
+    let structureMatches = true;
+    let feedbackMessage = "";
+
+    if (task.targetQueryStructure) {
+        let queryPartIndex = 0; // Индекс в currentConstructedQuery
+        for (const targetPart of task.targetQueryStructure) {
+            const currentQueryPart = currentConstructedQuery[queryPartIndex];
+
+            if (!currentQueryPart || currentQueryPart.value.toUpperCase() !== targetPart.keyword.toUpperCase()) {
+                structureMatches = false;
+                feedbackMessage = `Ожидался оператор '${targetPart.keyword}', но найден другой или конец запроса.`;
+                break;
+            }
+            queryPartIndex++; // Переходим к значению оператора
+
+            // Проверка значения для оператора
+            if (targetPart.value) {
+                const valueToMatch = targetPart.value;
+                let actualValueParts = [];
+                // Собираем все части значения до следующего ключевого слова или конца запроса
+                while(queryPartIndex < currentConstructedQuery.length && currentConstructedQuery[queryPartIndex].type !== 'keyword') {
+                    actualValueParts.push(currentConstructedQuery[queryPartIndex].value);
+                    queryPartIndex++;
+                }
+
+                let valueMatched = false;
+                if (Array.isArray(valueToMatch)) { // Если ожидается массив значений (например, список столбцов)
+                    // Простая проверка: все ли ожидаемые значения присутствуют в фактических
+                    valueMatched = valueToMatch.every(vtm => actualValueParts.some(avp => String(avp).toUpperCase() === String(vtm).toUpperCase()));
+                    if (!valueMatched) feedbackMessage = `Проверьте значения для оператора '${targetPart.keyword}'. Ожидалось что-то вроде: ${valueToMatch.join(', ')}.`;
+                } else { // Если ожидается одно значение
+                    const singleActualValue = actualValueParts.join(' '); // Если значение было разбито на части, объединяем
+                    if (String(singleActualValue).toUpperCase() === String(valueToMatch).toUpperCase()) {
+                        valueMatched = true;
+                    } else {
+                       feedbackMessage = `Проверьте значение для оператора '${targetPart.keyword}'. Ожидалось: '${valueToMatch}'.`;
+                    }
+                }
+                if (!valueMatched) {
+                    structureMatches = false;
+                    break;
+                }
+            }
+             // Если у targetPart нет value, значит это просто ключевое слово, и мы его уже проверили.
+        }
+        // Проверка, что в построенном запросе нет лишних ключевых слов в конце
+        if (structureMatches && queryPartIndex < currentConstructedQuery.length && currentConstructedQuery.slice(queryPartIndex).some(el => el.type === 'keyword')) {
+            structureMatches = false;
+            feedbackMessage = "Кажется, в вашем запросе есть лишние операторы в конце.";
+        }
+
+    } else { // Если targetQueryStructure не определен, считаем, что достаточно проверки requiredFunctions
+        structureMatches = true; // или false, в зависимости от того, как это должно работать
+    }
+
+
+    if (structureMatches && allRequiredFunctionsUsed) {
+        createQueryCurrentTaskFeedback.textContent = `Отлично! Запрос "${task.name}" выполнен! +${task.rewardXp || 0} 🌟`;
+        createQueryCurrentTaskFeedback.className = 'feedback-success';
+        gameData.queryConstructionProgress[currentQueryTaskId] = true;
+        addExperience(task.rewardXp || 0);
+        addHistoryEntry(`Задание на создание запроса "${task.name}" выполнено.`);
+
+        const oldTaskId = currentQueryTaskId; // Сохраняем ID выполненного задания
+        selectNextQueryTask(); // Выбираем следующее задание
+
+        if (currentQueryTaskId === oldTaskId || !currentQueryTaskId) { // Если следующего задания нет или это было последнее
+             // renderQueryConstructionPanel вызовет обновление списка и покажет, что все выполнено
+        }
+        renderQueryConstructionPanel(); // Обновляем всю панель
+    } else {
+        createQueryCurrentTaskFeedback.className = 'feedback-error';
+        if (!allRequiredFunctionsUsed) {
+            createQueryCurrentTaskFeedback.textContent = `Не все необходимые SQL-операторы были использованы. ${feedbackMessage}`;
+        } else {
+            createQueryCurrentTaskFeedback.textContent = `Запрос не совсем верный. ${feedbackMessage} Попробуйте еще раз!`;
+        }
+    }
+    updateUI();
+}
+
+
+// --- Сохранение/Загрузка игры ---
+// ... (Эти функции остаются как в предыдущей версии) ...
 function setGameView(view) {
     gameData.currentView = view;
-    // Если переходим на панель создания запроса и нет активного задания, выбираем первое доступное
-    if (view === 'create' && !currentQueryTaskId) {
-        selectNextQueryTask();
+    if (view === 'create') { // ИЗМЕНЕНО: При переходе на панель создания
+        if (!currentQueryTaskId || gameData.queryConstructionProgress[currentQueryTaskId]) {
+             // Если текущее задание не выбрано ИЛИ текущее задание уже выполнено, выбираем следующее
+            selectNextQueryTask();
+        }
+        // В любом случае, при заходе на вкладку, сбрасываем текущий собираемый запрос и фидбек,
+        // если задание уже было выбрано, но пользователь мог уйти и вернуться.
+        currentConstructedQuery = [];
+        if (createQueryCurrentTaskFeedback) {
+            createQueryCurrentTaskFeedback.textContent = '';
+            createQueryCurrentTaskFeedback.className = '';
+        }
     }
     updateUI();
 }
@@ -887,7 +1226,7 @@ function setupEventListeners() {
     historyButton.addEventListener('click', () => setGameView('history'));
 
     backFromCollectionButton.addEventListener('click', () => setGameView('main'));
-    backFromCreateButton.addEventListener('click', () => setGameView('main'));
+    if (backFromCreateButton) backFromCreateButton.addEventListener('click', () => setGameView('main')); // ИЗМЕНЕНО: проверка
     backFromShopButton.addEventListener('click', () => setGameView('main'));
     backFromMarketButton.addEventListener('click', () => setGameView('main'));
     backFromDailyBonusButton.addEventListener('click', () => setGameView('main'));
@@ -898,6 +1237,7 @@ function setupEventListeners() {
     backFromHistoryButton.addEventListener('click', () => setGameView('main'));
 
     if (claimDailyBonusButton) claimDailyBonusButton.addEventListener('click', claimDailyBonus);
+    // НОВОЕ: слушатель для кнопки проверки запроса
     if (createQuerySubmitButton) createQuerySubmitButton.addEventListener('click', handleSubmitConstructedQuery);
 
 
@@ -948,6 +1288,8 @@ function setupEventListeners() {
                 queryConstructionProgress: {},
                 currentView: 'main'
             };
+            currentQueryTaskId = null; // Сбрасываем текущее задание при ресете
+            currentConstructedQuery = [];
             updateUI();
             if (window.Telegram && window.Telegram.WebApp) {
                 window.location.reload();
@@ -958,7 +1300,6 @@ function setupEventListeners() {
     });
 }
 
-// --- Сохранение/Загрузка игры ---
 function saveGameData() {
     try {
         localStorage.setItem('coderGameData', JSON.stringify(gameData));
@@ -970,52 +1311,33 @@ function saveGameData() {
 function loadGameData() {
     const savedData = localStorage.getItem('coderGameData');
     const initialXpToNextLevel = (typeof XP_PER_LEVEL_BASE !== 'undefined') ? XP_PER_LEVEL_BASE : 100;
+    const initialXpMultiplier = (typeof XP_PER_LEVEL_MULTIPLIER !== 'undefined') ? XP_PER_LEVEL_MULTIPLIER : 1.2;
+
 
     if (savedData) {
         try {
             const loadedGameData = JSON.parse(savedData);
-
-            // Аккуратно загружаем каждое свойство, используя дефолтные значения из gameData, если в сейве чего-то нет
-            for (const key in gameData) {
-                if (loadedGameData.hasOwnProperty(key)) {
-                    // Особая обработка для вложенных объектов, чтобы не потерять новые свойства в них
-                    if (typeof gameData[key] === 'object' && gameData[key] !== null && !Array.isArray(gameData[key])) {
-                         if (typeof loadedGameData[key] === 'object' && loadedGameData[key] !== null) {
-                            gameData[key] = { ...gameData[key], ...loadedGameData[key] };
-                        }
-                    } else {
-                        gameData[key] = loadedGameData[key];
-                    }
-                }
-            }
-            // Убедимся, что основные числовые и строковые поля имеют значения по умолчанию, если их нет в сейве
+            gameData.message = loadedGameData.message ?? "Добро пожаловать обратно!";
+            gameData.collection = []; // Будет заполнено ниже, если есть ALL_CODE_PARTS
             gameData.experience = loadedGameData.experience ?? 0;
             gameData.level = loadedGameData.level ?? 1;
-            gameData.xpToNextLevel = loadedGameData.xpToNextLevel ?? initialXpToNextLevel * Math.pow(XP_PER_LEVEL_MULTIPLIER || 1.2, (gameData.level -1));
+            gameData.xpToNextLevel = loadedGameData.xpToNextLevel ?? Math.floor(initialXpToNextLevel * Math.pow(initialXpMultiplier, (gameData.level -1)));
             gameData.currentXp = loadedGameData.currentXp ?? 0;
             gameData.totalXpEarned = loadedGameData.totalXpEarned ?? 0;
-            // ... и так далее для других ключевых полей
-
+            gameData.partsSold = loadedGameData.partsSold ?? 0;
+            gameData.partsBought = loadedGameData.partsBought ?? 0;
+            gameData.lastDailyBonusClaim = loadedGameData.lastDailyBonusClaim ?? 0;
+            gameData.energy = loadedGameData.energy ?? 10;
+            gameData.maxEnergy = loadedGameData.maxEnergy ?? 10;
+            gameData.energyRecoveryRate = loadedGameData.energyRecoveryRate ?? 1;
+            gameData.lastEnergyRecovery = loadedGameData.lastEnergyRecovery ?? Date.now();
             gameData.activeBoosters = (loadedGameData.activeBoosters || []).filter(b => b.endsAt > Date.now());
             gameData.history = loadedGameData.history || [];
-            gameData.queryConstructionProgress = loadedGameData.queryConstructionProgress || {};
 
-
-            // Загрузка достижений: обновляем только 'completed' статус
-            const defaultAchievements = JSON.parse(JSON.stringify({
-                collect_5_unique: { completed: false, reward: 10, name: 'Первооткрыватель', description: 'Собрать 5 уникальных SQL-функций' },
-                collect_10_unique: { completed: false, reward: 20, name: 'Юный Базист', description: 'Собрать 10 уникальных SQL-функций' },
-                collect_20_unique: { completed: false, reward: 40, name: 'Мастер Запросов', description: 'Собрать 20 уникальных SQL-функций' },
-                collect_all_unique: { completed: false, reward: 100, name: 'Великий Сборщик', description: 'Собрать все уникальные SQL-функции' },
-                earn_50_xp: { completed: false, reward: 15, name: 'Опытный Кодер', description: 'Заработать 50 опыта' },
-                earn_200_xp: { completed: false, reward: 50, name: 'Гуру SQL', description: 'Заработать 200 опыта' },
-                sell_5_parts: { completed: false, reward: 10, name: 'Торговец Данными', description: 'Продать 5 SQL-функций' },
-                buy_5_parts: { completed: false, reward: 10, name: 'Опытный Покупатель', description: 'Купить 5 SQL-функций' },
-                complete_1_project: { completed: false, reward: 25, name: 'Первый Проект', description: 'Завершить 1 проект' },
-                complete_3_projects: { completed: false, reward: 50, name: 'Архитектор Баз Данных', description: 'Завершить 3 проекта' },
-            }));
-            gameData.achievements = defaultAchievements; // Сначала устанавливаем дефолтные
-            if (loadedGameData.achievements) { // Затем обновляем из сохраненных данных
+            // Загрузка достижений
+            const defaultAchievements = JSON.parse(JSON.stringify(gameData.achievements));
+            gameData.achievements = defaultAchievements;
+            if (loadedGameData.achievements) {
                 for (const achId in gameData.achievements) {
                     if (loadedGameData.achievements[achId] !== undefined) {
                         gameData.achievements[achId].completed = loadedGameData.achievements[achId].completed;
@@ -1023,267 +1345,66 @@ function loadGameData() {
                 }
             }
 
-
-            // Загрузка проектов: обновляем только 'completed' статус
-            const defaultProjects = JSON.parse(JSON.stringify([
-                { id: 'proj_basic_select', name: 'Базовая выборка данных', description: 'Извлечь все данные из таблицы Customers.', requirements: ['sql_select', 'sql_from'], completed: false, reward_xp: 20 },
-                { id: 'proj_filtered_select', name: 'Выборка с фильтром', description: 'Найти продукты дороже 50.', requirements: ['sql_select', 'sql_from', 'sql_where'], completed: false, reward_xp: 35 },
-                { id: 'proj_insert_data', name: 'Вставка новой записи', description: 'Добавить нового пользователя в таблицу.', requirements: ['sql_insert_into', 'sql_values'], completed: false, reward_xp: 25 },
-                { id: 'proj_update_record', name: 'Обновление записи', description: 'Изменить данные существующей записи.', requirements: ['sql_update', 'sql_set', 'sql_where'], completed: false, reward_xp: 30 },
-                { id: 'proj_delete_record', name: 'Удаление записи', description: 'Удалить запись из таблицы.', requirements: ['sql_delete_from', 'sql_where'], completed: false, reward_xp: 20 },
-                { id: 'proj_table_join', name: 'Объединение таблиц', description: 'Соединить данные из Customers и Orders.', requirements: ['sql_select', 'sql_from', 'sql_join'], completed: false, reward_xp: 50 },
-                { id: 'proj_create_simple_table', name: 'Создание простой таблицы', description: 'Создать таблицу с ID и именем.', requirements: ['sql_create_table', 'sql_int', 'sql_varchar'], completed: false, reward_xp: 40 },
-                { id: 'proj_count_records', name: 'Подсчет записей', description: 'Посчитать количество записей в таблице.', requirements: ['sql_select', 'sql_count', 'sql_from'], completed: false, reward_xp: 20 },
-                { id: 'proj_aggregate_data', name: 'Агрегация данных', description: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
-            ]));
+            // Загрузка проектов
+            const defaultProjects = JSON.parse(JSON.stringify(gameData.projects));
             const loadedProjectsMap = new Map((loadedGameData.projects || []).map(p => [p.id, p]));
             gameData.projects = defaultProjects.map(defaultProj => {
                 const loadedProj = loadedProjectsMap.get(defaultProj.id);
-                if (loadedProj) {
-                    return { ...defaultProj, completed: loadedProj.completed };
-                }
-                return defaultProj;
+                return loadedProj ? { ...defaultProj, completed: loadedProj.completed } : defaultProj;
             });
 
+            gameData.queryConstructionProgress = loadedGameData.queryConstructionProgress || {};
+            gameData.currentView = loadedGameData.currentView || 'main';
 
-            // Загрузка коллекции
+            // Загрузка коллекции после того, как ALL_CODE_PARTS точно определен
             if (typeof ALL_CODE_PARTS !== 'undefined') {
                 gameData.collection = (loadedGameData.collection || []).map(item => {
                     const fullItemData = ALL_CODE_PARTS.find(part => part.id === item.id);
                     return fullItemData ? { ...fullItemData, count: item.count || 1 } : null;
                 }).filter(item => item !== null);
-            } else { // Если ALL_CODE_PARTS еще не загружен (маловероятно при правильном порядке)
-                console.warn("ALL_CODE_PARTS not available during collection load. Collection might be empty or incomplete.");
-                gameData.collection = (loadedGameData.collection || []).map(item => ({id: item.id, count: item.count || 1, name: item.name || 'Unknown'})); // Временное решение
+            } else {
+                 // Это состояние не должно возникать при правильном порядке загрузки скриптов
+                console.warn("ALL_CODE_PARTS not defined during loadGameData's collection processing. Collection will be empty.");
+                gameData.collection = [];
             }
 
 
         } catch (e) {
             console.error("Error parsing saved game data:", e);
-            // Если парсинг не удался, можно сбросить игру к начальному состоянию
-            // или попробовать загрузить какие-то части. Пока просто выводим ошибку.
-            gameData.xpToNextLevel = initialXpToNextLevel; // Устанавливаем базовое значение
+            gameData.xpToNextLevel = initialXpToNextLevel;
         }
     } else {
-        // Если нет сохраненных данных, убедимся, что xpToNextLevel установлен правильно
         gameData.xpToNextLevel = initialXpToNextLevel;
     }
 }
 
-
 // --- Инициализация при старте ---
 document.addEventListener('DOMContentLoaded', () => {
-    initializeDOMElements();
-    loadGameData();
-    setupEventListeners();
-    updateEnergy();
-    cleanExpiredBoosters();
-    updateUI();
+    // Порядок важен: сначала данные, потом DOM, потом слушатели, потом UI
+    loadGameData();        // Загружаем сохраненные данные ИГРЫ (gameData)
+    initializeDOMElements(); // Инициализируем ссылки на DOM элементы
+    setupEventListeners();   // Настраиваем слушатели событий (которые могут зависеть от DOM)
+    selectNextQueryTask();   // Выбираем первое задание для конструктора, если есть
+    updateEnergy();        // Обновляем энергию
+    cleanExpiredBoosters();// Очищаем истекшие бустеры
+    updateUI();            // Обновляем UI в первый раз
 
     if (gameMessageElement && gameData.currentView === 'main' && (gameData.message === "Добро пожаловать в игру!" || gameData.message === "Добро пожаловать обратно!")) {
          gameMessageElement.textContent = `Добро пожаловать обратно! У вас ${gameData.experience} 🌟`;
     }
 });
 
-
 // Auto-save and updates
 setInterval(saveGameData, 5000);
 setInterval(() => {
     updateEnergy();
     cleanExpiredBoosters();
-    if (typeof gameMessageElement !== 'undefined' && gameMessageElement) { // Проверка, что DOM готов
-        if (gameData.currentView === 'daily_bonus' || gameData.currentView === 'boosters' || gameData.currentView === 'main' || gameData.currentView === 'create') {
-             updateUI(); // Обновляем UI для панели создания запроса тоже, если там будут таймеры или динамика
+    if (typeof gameMessageElement !== 'undefined' && gameMessageElement) {
+        if (['daily_bonus', 'boosters', 'main', 'create'].includes(gameData.currentView)) {
+             updateUI();
         } else {
             if (energyDisplay) energyDisplay.textContent = `⚡️ Энергия: ${gameData.energy}/${gameData.maxEnergy}`;
             if (collectButton) collectButton.disabled = gameData.energy < ENERGY_CONSUMPTION_PER_ACTION;
         }
     }
 }, 1000);
-
-// --- Функции для Механики "Создать Запрос" --- (Начало)
-
-// Отображение панели создания запросов
-function renderQueryConstructionPanel() {
-    if (!createPanel || typeof QUERY_CONSTRUCTION_TASKS === 'undefined') return;
-
-    // Если нет элементов для панели создания запроса в DOM, значит HTML еще не обновлен
-    // Мы их добавим в HTML на следующем шаге. Пока просто заглушка.
-    if (!createQueryTaskList || !createQueryTaskDescription || !createQueryAvailableFunctions || !createQueryConstructionArea || !createQuerySubmitButton || !createQueryCurrentTaskFeedback) {
-        const placeholderDiv = createPanel.querySelector('#availableParts'); // Используем существующий div
-        if (placeholderDiv) {
-            placeholderDiv.innerHTML = `<p>Интерфейс создания запросов в разработке. Скоро здесь будет интересно!</p>
-                                        <p>Текущий ID Задания (для отладки): ${currentQueryTaskId || 'Нет активного задания'}</p>`;
-        }
-        return;
-    }
-    // Логика будет добавлена позже
-}
-
-
-// Выбор следующего доступного задания
-function selectNextQueryTask() {
-    if (typeof QUERY_CONSTRUCTION_TASKS === 'undefined') return;
-    currentQueryTaskId = null;
-    currentConstructedQuery = [];
-
-    let firstUncompletedTask = null;
-    for (const task of QUERY_CONSTRUCTION_TASKS) {
-        if (!gameData.queryConstructionProgress[task.id]) {
-            firstUncompletedTask = task;
-            break;
-        }
-    }
-
-    if (firstUncompletedTask) {
-        currentQueryTaskId = firstUncompletedTask.id;
-    } else {
-        // Все задания выполнены
-        currentQueryTaskId = null;
-    }
-    // После выбора задания нужно будет перерисовать панель
-    // renderQueryConstructionPanel(); // Вызовем это из updateUI или setGameView
-}
-
-// Обработчик для добавления элемента в конструируемый запрос (будет вызван по клику на доступную функцию/значение)
-function addElementToQuery(type, value, originalId = null) {
-    // TODO: Добавить логику, чтобы игрок не мог добавить что попало, а только то, что имеет смысл на текущем шаге
-    currentConstructedQuery.push({ type, value, originalId });
-    renderConstructedQuery(); // Обновить отображение собираемого запроса
-    // Возможно, здесь же проверка на соответствие подсказкам или частичную валидацию
-}
-
-// Отображение текущего собираемого запроса
-function renderConstructedQuery() {
-    if (!createQueryConstructionArea) return;
-    createQueryConstructionArea.innerHTML = currentConstructedQuery.map(el => {
-        let displayValue = el.value;
-        if (el.type === 'keyword' && el.originalId) {
-            const funcData = ALL_CODE_PARTS.find(f => f.id === el.originalId);
-            displayValue = funcData ? `${funcData.emoji || ''} ${funcData.name}` : el.value;
-        } else if (Array.isArray(el.value)) {
-            displayValue = el.value.join(', ');
-        }
-        return `<span class="query-element query-element-${el.type}" data-index="${currentConstructedQuery.indexOf(el)}">${displayValue}</span>`;
-    }).join(' ');
-    // Добавить возможность удалять элементы из запроса по клику на них
-    createQueryConstructionArea.querySelectorAll('.query-element').forEach(span => {
-        span.onclick = (e) => {
-            const index = parseInt(e.target.dataset.index);
-            if (!isNaN(index)) {
-                currentConstructedQuery.splice(index, 1);
-                renderConstructedQuery();
-            }
-        };
-    });
-}
-
-
-// Обработчик нажатия кнопки "Проверить/Выполнить запрос"
-function handleSubmitConstructedQuery() {
-    if (!currentQueryTaskId || typeof QUERY_CONSTRUCTION_TASKS === 'undefined') {
-        if (createQueryCurrentTaskFeedback) createQueryCurrentTaskFeedback.textContent = "Нет активного задания для проверки.";
-        return;
-    }
-    const task = QUERY_CONSTRUCTION_TASKS.find(t => t.id === currentQueryTaskId);
-    if (!task) {
-        if (createQueryCurrentTaskFeedback) createQueryCurrentTaskFeedback.textContent = "Ошибка: текущее задание не найдено.";
-        return;
-    }
-
-    // --- Упрощенная логика проверки ---
-    // 1. Проверяем наличие всех requiredFunctions
-    let كلهاТребуемыеФункцииИспользованы = (task.requiredFunctions || []).every(reqFuncId =>
-        currentConstructedQuery.some(el => el.originalId === reqFuncId && el.type === 'keyword')
-    );
-
-    // 2. Проверяем примерную структуру (последовательность ключевых слов и их значения)
-    // Это очень упрощенная проверка. Для реальной SQL пришлось бы писать парсер.
-    let структураСовпадает = true;
-    let подсказка = "";
-
-    if (task.targetQueryStructure) {
-        let constructedIndex = 0;
-        for (const targetElement of task.targetQueryStructure) {
-            // Ищем следующее ключевое слово в построенном запросе
-            const foundKeywordIndex = currentConstructedQuery.findIndex((el, idx) => idx >= constructedIndex && el.type === 'keyword' && el.value.toUpperCase() === targetElement.keyword.toUpperCase());
-
-            if (foundKeywordIndex === -1) {
-                структураСовпадает = false;
-                подсказка = `Кажется, вы пропустили оператор '${targetElement.keyword}'.`;
-                break;
-            }
-
-            // Проверяем значение, если оно есть в targetQueryStructure
-            // Это очень базовая проверка.
-            if (targetElement.value) {
-                // Ищем значение после найденного ключевого слова
-                // Для SELECT может быть несколько значений (столбцов) или '*'
-                // Для FROM - имя таблицы
-                // Для WHERE - условие
-                // Для JOIN - имя таблицы и условие
-                // Пока просто ищем первое не-ключевое слово после оператора
-                let valuePart = "";
-                if (currentConstructedQuery[foundKeywordIndex + 1] && currentConstructedQuery[foundKeywordIndex + 1].type !== 'keyword') {
-                     valuePart = currentConstructedQuery[foundKeywordIndex + 1].value;
-                }
-
-                if (targetElement.keyword.toUpperCase() === 'SELECT') {
-                    if (Array.isArray(targetElement.value)) { // Ожидается массив столбцов
-                        const selectedColumns = currentConstructedQuery.slice(foundKeywordIndex + 1)
-                            .filter(el => el.type === 'column' || el.type === 'value') // Просто берем значения
-                            .map(el => el.value);
-                        if (!targetElement.value.every(v => selectedColumns.includes(v))) {
-                            структураСовпадает = false;
-                            подсказка = `Проверьте список столбцов для SELECT. Ожидалось: ${targetElement.value.join(', ')}.`;
-                            break;
-                        }
-                    } else if (targetElement.value === '*') { // Ожидается *
-                        if (valuePart !== '*') {
-                             структураСовпадает = false;
-                             подсказка = `Для SELECT ожидался символ '*' для выбора всех столбцов.`;
-                             break;
-                        }
-                    } else { // Ожидается один столбец
-                         if (valuePart !== targetElement.value) {
-                             структураСовпадает = false;
-                             подсказка = `Проверьте столбец для SELECT. Ожидалось: ${targetElement.value}.`;
-                             break;
-                         }
-                    }
-                } else if (targetElement.keyword.toUpperCase() === 'FROM') {
-                    if (valuePart.toUpperCase() !== targetElement.value.toUpperCase()) {
-                        структураСовпадает = false;
-                        подсказка = `Проверьте имя таблицы для FROM. Ожидалось: ${targetElement.value}.`;
-                        break;
-                    }
-                }
-                // TODO: Добавить более детальную проверку для WHERE, JOIN и других конструкций
-            }
-            constructedIndex = foundKeywordIndex + 1; // Продолжаем поиск со следующего элемента
-        }
-    }
-
-
-    if (структураСовпадает && كلهاТребуемыеФункцииИспользованы) {
-        if (createQueryCurrentTaskFeedback) createQueryCurrentTaskFeedback.textContent = `Отлично! Запрос "${task.name}" выполнен! +${task.rewardXp || 0} 🌟`;
-        gameData.queryConstructionProgress[currentQueryTaskId] = true;
-        addExperience(task.rewardXp || 0);
-        addHistoryEntry(`Задание на создание запроса "${task.name}" выполнено.`);
-
-        // Разблокировка следующего задания (если есть)
-        // currentQueryTaskId = task.unlocksNextTaskId; // Неправильно, selectNextQueryTask сам найдет
-        selectNextQueryTask(); // Выбираем следующее задание
-        renderQueryConstructionPanel(); // Обновляем панель с новым заданием или сообщением о завершении
-    } else {
-        if (createQueryCurrentTaskFeedback) {
-             if (!всяТребуемыеФункцииИспользованы) {
-                createQueryCurrentTaskFeedback.textContent = `Кажется, вы не использовали все необходимые SQL-операторы для этого задания. ${подсказка}`;
-            } else {
-                createQueryCurrentTaskFeedback.textContent = `Запрос не совсем верный. ${подсказка} Попробуйте еще раз!`;
-            }
-        }
-    }
-    updateUI(); // Обновить общий UI, например, опыт
-}
-// --- Функции для Механики "Создать Запрос" --- (Конец)
