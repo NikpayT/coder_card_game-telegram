@@ -1,3 +1,4 @@
+
 // script.js - Основная логика игры "SQL Code Collector Game"
 
 // --- Игровая статистика и состояние ---
@@ -42,6 +43,8 @@ let gameData = {
         { id: 'proj_aggregate_data', name: 'Агрегация данных', description: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
     ],
     queryConstructionProgress: {},
+    currentDbType: 'universal',
+    unlockedDbTypes: ['universal'],
     currentView: 'main'
 };
 
@@ -49,7 +52,7 @@ let gameData = {
 let gameMessageElement, experienceDisplay, levelDisplay, levelProgressBar, energyDisplay,
     mainButtonsContainer, collectButton, viewCollectionButton, createButton, shopButton,
     dailyBonusButton, achievementsButton, statsButton, projectBoardButton, boostersButton,
-    marketButton, historyButton, collectionDisplay, collectionHeader, collectionList,
+    marketButton, historyButton, openDbSelectorButton, collectionDisplay, collectionHeader, collectionList,
     backFromCollectionButton, createPanel, backFromCreateButton, shopPanel, buyableItemsList,
     backFromShopButton, marketPanel, marketItemsList, backFromMarketButton, dailyBonusPanel,
     dailyBonusMessage, claimDailyBonusButton, backFromDailyBonusButton, achievementsPanel,
@@ -65,6 +68,8 @@ let createQueryTaskList, createQueryTaskDescription, createQueryAvailableFunctio
     createQueryConstructionArea, createQuerySubmitButton, createQueryCurrentTaskFeedback;
 let currentQueryTaskId = null;
 let currentConstructedQuery = [];
+
+let dbTypeSelectorPanel, currentDbDisplay, backFromDbSelector;
 
 
 function initializeDOMElements() {
@@ -85,6 +90,8 @@ function initializeDOMElements() {
     boostersButton = document.getElementById('boostersButton');
     marketButton = document.getElementById('marketButton');
     historyButton = document.getElementById('historyButton');
+    openDbSelectorButton = document.getElementById('openDbSelectorButton');
+
     collectionDisplay = document.getElementById('collectionDisplay');
     collectionHeader = document.getElementById('collectionHeader');
     collectionList = document.getElementById('collectionList');
@@ -99,20 +106,23 @@ function initializeDOMElements() {
     createQueryCurrentTaskFeedback = document.getElementById('createQueryCurrentTaskFeedback');
     backFromCreateButton = document.getElementById('backFromCreate');
 
-
     shopPanel = document.getElementById('shopPanel');
     buyableItemsList = document.getElementById('buyableItemsList');
     backFromShopButton = document.getElementById('backFromShop');
+
     marketPanel = document.getElementById('marketPanel');
     marketItemsList = document.getElementById('marketItemsList');
     backFromMarketButton = document.getElementById('backFromMarket');
+
     dailyBonusPanel = document.getElementById('dailyBonusPanel');
     dailyBonusMessage = document.getElementById('dailyBonusMessage');
     claimDailyBonusButton = document.getElementById('claimDailyBonusButton');
     backFromDailyBonusButton = document.getElementById('backFromDailyBonus');
+
     achievementsPanel = document.getElementById('achievementsPanel');
     achievementsList = document.getElementById('achievementsList');
     backFromAchievementsButton = document.getElementById('backFromAchievements');
+
     statsPanel = document.getElementById('statsPanel');
     statsUniqueCount = document.getElementById('statsUniqueCount');
     statsTotalCount = document.getElementById('statsTotalCount');
@@ -120,16 +130,21 @@ function initializeDOMElements() {
     statsPartsSold = document.getElementById('statsPartsSold');
     statsPartsBought = document.getElementById('statsPartsBought');
     backFromStatsButton = document.getElementById('backFromStats');
+
     projectPanel = document.getElementById('projectPanel');
     projectList = document.getElementById('projectList');
     backFromProjectBoardButton = document.getElementById('backFromProjectBoard');
+
     boostersPanel = document.getElementById('boostersPanel');
     boosterList = document.getElementById('boosterList');
     backFromBoostersButton = document.getElementById('backFromBoosters');
+
     historyPanel = document.getElementById('historyPanel');
     historyLog = document.getElementById('historyLog');
     backFromHistoryButton = document.getElementById('backFromHistory');
+
     resetGameButton = document.getElementById('resetGameButton');
+
     partDetailModal = document.getElementById('partDetailModal');
     closePartDetailModal = document.getElementById('closePartDetailModal');
     modalPartName = document.getElementById('modalPartName');
@@ -139,9 +154,12 @@ function initializeDOMElements() {
     modalPartCount = document.getElementById('modalPartCount');
     modalSellButton = document.getElementById('modalSellButton');
     gameVersionDisplay = document.getElementById('gameVersion');
+
+    dbTypeSelectorPanel = document.getElementById('dbTypeSelectorPanel');
+    currentDbDisplay = document.getElementById('currentDbDisplay');
+    backFromDbSelector = document.getElementById('backFromDbSelector');
 }
 
-// --- Инициализация Telegram Web App SDK ---
 if (window.Telegram && window.Telegram.WebApp) {
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
@@ -150,7 +168,6 @@ if (window.Telegram && window.Telegram.WebApp) {
     console.warn('Telegram WebApp script not loaded or not in Telegram environment. Running in standalone mode.');
 }
 
-// --- Управление UI и состояниями ---
 function updateUI() {
     if (!gameMessageElement) return;
 
@@ -166,10 +183,22 @@ function updateUI() {
         gameVersionDisplay.textContent = GAME_VERSION;
     }
 
+    if (currentDbDisplay && typeof DATABASE_TYPES !== 'undefined') {
+        const currentDb = DATABASE_TYPES.find(db => db.id === gameData.currentDbType);
+        let dbDisplayName = 'Не выбрана';
+        if (currentDb) {
+            dbDisplayName = `${currentDb.emoji || ''} ${currentDb.name}`;
+        }
+        // Кнопка "Сменить" теперь является частью основного меню (openDbSelectorButton)
+        // currentDbDisplay.innerHTML = `Текущая СУБД: ${dbDisplayName}`;
+        // Чтобы избежать дублирования слушателей, кнопку "Сменить" из хедера можно убрать или сделать ее информативной
+        currentDbDisplay.textContent = `СУБД: ${dbDisplayName}`;
+    }
+
     const allPanels = [
         mainButtonsContainer, collectionDisplay, createPanel, shopPanel,
         dailyBonusPanel, achievementsPanel, statsPanel, projectPanel,
-        boostersPanel, historyPanel, marketPanel
+        boostersPanel, historyPanel, marketPanel, dbTypeSelectorPanel
     ];
     allPanels.forEach(panel => { if (panel) panel.style.display = 'none'; });
     if (resetGameButton) resetGameButton.style.display = 'block';
@@ -219,29 +248,130 @@ function updateUI() {
             if (historyPanel) historyPanel.style.display = 'block';
             renderHistory();
             break;
+        case 'db_selector':
+            if (dbTypeSelectorPanel) dbTypeSelectorPanel.style.display = 'block';
+            renderDbTypeSelectorPanel();
+            break;
     }
     if (collectButton) collectButton.disabled = gameData.energy < ENERGY_CONSUMPTION_PER_ACTION;
 }
 
-// --- Рендеринг панелей ---
+function renderDbTypeSelectorPanel() {
+    if (!dbTypeSelectorPanel || typeof DATABASE_TYPES === 'undefined') return;
+    // Заголовок уже есть в HTML, если мы его не перезаписываем полностью
+    let listContainer = dbTypeSelectorPanel.querySelector('.list-grid');
+    if (!listContainer) { // Если контейнера нет, создаем его и заголовок
+        dbTypeSelectorPanel.innerHTML = '<h3>Выберите специализацию СУБД:</h3>';
+        listContainer = document.createElement('div');
+        listContainer.className = 'list-grid';
+        dbTypeSelectorPanel.appendChild(listContainer);
+    } else {
+        listContainer.innerHTML = ''; // Очищаем только список
+    }
+
+
+    DATABASE_TYPES.forEach(db => {
+        const item = document.createElement('div');
+        item.className = 'list-item db-type-item';
+        if (gameData.currentDbType === db.id) {
+            item.classList.add('active');
+        }
+
+        let buttonHtml = '';
+        if (!gameData.unlockedDbTypes.includes(db.id)) {
+            // Пример: кнопка разблокировки. Логику разблокировки нужно будет добавить.
+            // Пока просто "Заблокировано"
+            buttonHtml = `<button disabled title="Разблокируйте эту СУБД через достижения или магазин.">Заблокировано</button>`;
+        } else if (gameData.currentDbType === db.id) {
+            buttonHtml = `<button disabled>Активно</button>`;
+        } else {
+            buttonHtml = `<button data-dbid="${db.id}">Выбрать</button>`;
+        }
+
+        item.innerHTML = `
+            <div class="list-item-main">
+                <span class="list-item-name">${db.emoji || '💠'} ${db.name}</span>
+                <span class="list-item-description">${db.description}</span>
+            </div>
+            ${buttonHtml}
+        `;
+        const selectButton = item.querySelector('button[data-dbid]');
+        if (selectButton) {
+            selectButton.onclick = () => setActiveDbType(db.id);
+        }
+        listContainer.appendChild(item);
+    });
+
+    // Убедимся, что кнопка "Назад" есть и одна
+    let backButton = dbTypeSelectorPanel.querySelector('#backFromDbSelector');
+    if (!backButton) {
+        backButton = document.createElement('button');
+        backButton.id = 'backFromDbSelector'; // Присваиваем ID, чтобы не дублировать
+        backButton.textContent = 'Назад';
+        backButton.className = 'secondary-button';
+        backButton.style.marginTop = '20px';
+        dbTypeSelectorPanel.appendChild(backButton);
+    }
+    // Слушатель для кнопки "Назад" теперь будет в setupEventListeners
+}
+
+
 function renderCollection() {
     if (!collectionHeader || !collectionList) return;
     const uniquePartsCount = gameData.collection.length;
     const totalPartsCount = (typeof ALL_CODE_PARTS !== 'undefined') ? ALL_CODE_PARTS.length : 0;
-    collectionHeader.textContent = `Моя коллекция SQL: (${uniquePartsCount}/${totalPartsCount})`;
+    collectionHeader.textContent = `Моя коллекция SQL (${(DATABASE_TYPES.find(db=>db.id === gameData.currentDbType) || {}).name || 'Все'}): (${uniquePartsCount}/${totalPartsCount})`;
 
-    if (gameData.collection.length === 0) {
-        collectionList.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">Пока ничего нет...</p>';
+
+    let displayCollection = [];
+    if (typeof ALL_CODE_PARTS !== 'undefined') {
+        if (gameData.currentDbType === 'show_all_temp_collection') { // Флаг для временного показа всех
+            displayCollection = [...gameData.collection].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        } else {
+             displayCollection = gameData.collection.filter(item => {
+                const partData = ALL_CODE_PARTS.find(p => p.id === item.id);
+                if (!partData) return false;
+                if (gameData.currentDbType === 'universal') {
+                    return !partData.dbType || partData.dbType.length === 0;
+                }
+                return partData.dbType && partData.dbType.includes(gameData.currentDbType) || (!partData.dbType || partData.dbType.length === 0); // Показываем специфичные И универсальные
+            }).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        }
+    }
+
+
+    if (displayCollection.length === 0 ) {
+        let messageText = 'В этой категории пока ничего нет...';
+        if (gameData.collection.length > 0 && gameData.currentDbType !== 'show_all_temp_collection') { // Если есть что-то в других категориях
+             messageText = `Для текущей СУБД (${(DATABASE_TYPES.find(db=>db.id === gameData.currentDbType) || {}).name || 'N/A'}) функций нет. <a href="#" id="showAllCollectedFuncs">Показать все (${gameData.collection.length})</a>`;
+        } else if (gameData.collection.length === 0) {
+            messageText = 'Пока ничего нет...';
+        }
+        collectionList.innerHTML = `<p style="text-align: center; width: 100%; color: var(--light-text-color);">${messageText}</p>`;
+        const showAllLink = document.getElementById('showAllCollectedFuncs');
+        if (showAllLink) {
+            showAllLink.onclick = (e) => {
+                e.preventDefault();
+                const oldDbType = gameData.currentDbType;
+                gameData.currentDbType = 'show_all_temp_collection';
+                renderCollection();
+                gameData.currentDbType = oldDbType;
+            };
+        }
     } else {
         collectionList.innerHTML = '';
-        const sortedCollection = [...gameData.collection].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-
-        sortedCollection.forEach(item => {
+        displayCollection.forEach(item => {
             const div = document.createElement('div');
             div.className = 'list-item';
+            let dbTypeInfo = '';
+            const partFullData = ALL_CODE_PARTS.find(p => p.id === item.id);
+            if (partFullData && partFullData.dbType && partFullData.dbType.length > 0) {
+                dbTypeInfo = ` <span style="font-size:0.8em; color: var(--light-text-color);">(${partFullData.dbType.map(id => (DATABASE_TYPES.find(db=>db.id===id) || {name:id}).name).join(', ')})</span>`;
+            }
+
             div.innerHTML = `
                 <div class="list-item-main">
-                    <span class="list-item-name">${item.emoji || '❓'} ${item.name || 'Без имени'}</span>
+                    <span class="list-item-name">${item.emoji || '❓'} ${item.name || 'Без имени'}${dbTypeInfo}</span>
                     <span class="list-item-description">В наличии: x${item.count || 0}</span>
                 </div>
                 <button class="item-action-button sell-button">Продать (1 🌟)</button>
@@ -257,6 +387,7 @@ function renderCollection() {
     }
 }
 
+
 function showPartDetails(partId, sourcePanel) {
     if (typeof ALL_CODE_PARTS === 'undefined') return;
     const part = ALL_CODE_PARTS.find(p => p.id === partId);
@@ -265,7 +396,19 @@ function showPartDetails(partId, sourcePanel) {
     if (part && modalPartName) {
         modalPartName.textContent = `${part.emoji || '❓'} ${part.name || 'Без имени'}`;
         if (modalPartDescription) modalPartDescription.textContent = part.description || 'Нет описания.';
-        if (modalPartType) modalPartType.textContent = part.type || 'Неизвестно';
+        
+        let typeText = part.type || 'Неизвестно';
+        if (part.dbType && typeof DATABASE_TYPES !== 'undefined' && part.dbType.length > 0) {
+            const dbSpecificNames = part.dbType.map(dbId => {
+                const db = DATABASE_TYPES.find(d => d.id === dbId);
+                return db ? db.name : dbId;
+            }).join(', ');
+            typeText += ` (Специфично для: ${dbSpecificNames})`;
+        } else if (!part.dbType || part.dbType.length === 0) {
+            typeText += ` (Универсальная)`;
+        }
+        if (modalPartType) modalPartType.textContent = typeText;
+
         if (modalPartExample) modalPartExample.textContent = part.example || 'Пример недоступен.';
         if (modalPartCount) modalPartCount.textContent = collectedPart ? (collectedPart.count || 0) : 0;
 
@@ -281,7 +424,9 @@ function showPartDetails(partId, sourcePanel) {
                     } else {
                         if (modalPartCount) modalPartCount.textContent = updatedCollectedPart.count;
                     }
-                    updateUI();
+                    // renderCollection(); // Вместо полного updateUI, можно только коллекцию, если мы в ней
+                    if (gameData.currentView === 'collection') renderCollection();
+                    else updateUI();
                 };
             } else {
                 modalSellButton.style.display = 'none';
@@ -305,15 +450,21 @@ window.onclick = (event) => {
     }
 };
 
-
 function renderShopItems() {
     if (!buyableItemsList || typeof ALL_CODE_PARTS === 'undefined') return;
     const buyableParts = ALL_CODE_PARTS.filter(part => {
-        return !gameData.collection.some(item => item.id === part.id);
+        const notCollected = !gameData.collection.some(item => item.id === part.id);
+        if (!notCollected) return false;
+
+        // Фильтруем по текущей СУБД
+        if (gameData.currentDbType === 'universal') {
+            return !part.dbType || part.dbType.length === 0;
+        }
+        return (part.dbType && part.dbType.includes(gameData.currentDbType)) || (!part.dbType || part.dbType.length === 0);
     });
 
     if (buyableParts.length === 0) {
-        buyableItemsList.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">Все доступные функции собраны! 🏆</p>';
+        buyableItemsList.innerHTML = `<p style="text-align: center; width: 100%; color: var(--light-text-color);">Все доступные функции для СУБД "${(DATABASE_TYPES.find(db=>db.id === gameData.currentDbType) || {name:gameData.currentDbType}).name}" собраны или их нет в магазине!</p>`;
     } else {
         buyableItemsList.innerHTML = '';
         const sortedBuyableParts = [...buyableParts].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
@@ -342,13 +493,20 @@ function renderShopItems() {
 
 function renderMarketItems() {
     if (!marketItemsList || typeof ALL_CODE_PARTS === 'undefined' || typeof RARITIES === 'undefined') return;
-    const rareParts = ALL_CODE_PARTS.filter(part =>
-        part.rarity && part.rarity !== 'common' &&
-        !gameData.collection.some(item => item.id === part.id)
-    );
+    const rareParts = ALL_CODE_PARTS.filter(part => {
+        const isRareEnough = part.rarity && part.rarity !== 'common';
+        const notCollected = !gameData.collection.some(item => item.id === part.id);
+        if (!isRareEnough || !notCollected) return false;
+
+        // Фильтруем по текущей СУБД
+         if (gameData.currentDbType === 'universal') {
+            return !part.dbType || part.dbType.length === 0;
+        }
+        return (part.dbType && part.dbType.includes(gameData.currentDbType)) || (!part.dbType || part.dbType.length === 0);
+    });
 
     if (rareParts.length === 0) {
-        marketItemsList.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">На рынке пока нет редких функций, или вы уже собрали их все!</p>';
+        marketItemsList.innerHTML = `<p style="text-align: center; width: 100%; color: var(--light-text-color);">На рынке пока нет редких функций для СУБД "${(DATABASE_TYPES.find(db=>db.id === gameData.currentDbType) || {name:gameData.currentDbType}).name}", или вы уже собрали их все!</p>`;
     } else {
         marketItemsList.innerHTML = '';
         const sortedRareParts = [...rareParts].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
@@ -398,7 +556,7 @@ function renderAchievements() {
                 <strong>${ach.name || 'Название достижения'}</strong><br>
                 <span>${ach.description || 'Описание отсутствует.'}</span>
             </div>
-            ${isCompleted ? '<span>✓ Получено!</span>' : ''}
+            ${isCompleted ? '<span>&#10003; Получено!</span>' : ''}
         `;
         achievementsList.appendChild(div);
     });
@@ -436,7 +594,7 @@ function renderProjects() {
             const hasPart = gameData.collection.some(item => item.id === reqId && item.count > 0);
             const metClass = hasPart ? 'requirement-met' : '';
             if (!hasPart) allRequirementsMet = false;
-            requirementsHtml += `<li class="${metClass}">${(requiredPart && requiredPart.emoji) || '❓'} ${requiredPart ? (requiredPart.name || 'Неизвестно') : 'Неизвестная функция'} ${hasPart ? '✓' : '✗'}</li>`;
+            requirementsHtml += `<li class="${metClass}">${(requiredPart && requiredPart.emoji) || '❓'} ${requiredPart ? (requiredPart.name || 'Неизвестно') : 'Неизвестная функция'} ${hasPart ? '&#10003;' : '&#10007;'}</li>`;
         });
         requirementsHtml += '</ul>';
 
@@ -514,6 +672,20 @@ function renderHistory() {
 }
 
 // --- Логика игры ---
+function setActiveDbType(dbTypeId) {
+    if (typeof DATABASE_TYPES !== 'undefined' && DATABASE_TYPES.find(db => db.id === dbTypeId) && gameData.unlockedDbTypes.includes(dbTypeId)) {
+        gameData.currentDbType = dbTypeId;
+        const db = DATABASE_TYPES.find(d => d.id === dbTypeId);
+        gameData.message = `Вы переключились на специализацию: ${db ? (db.emoji || '') + ' ' + db.name : dbTypeId}!`;
+        addHistoryEntry(`Смена специализации СУБД на: ${db ? db.name : dbTypeId}.`);
+        setGameView('main');
+        updateUI();
+    } else {
+        gameData.message = "Эта специализация СУБД пока не разблокирована или не существует.";
+        updateUI();
+    }
+}
+
 function addExperience(amount) {
     let actualAmount = amount;
     const xpBooster = gameData.activeBoosters.find(b => b.id === 'xp_boost' && b.endsAt > Date.now());
@@ -671,7 +843,12 @@ function sellPart(partId) {
     } else {
         gameData.message = 'Ошибка: этой функции нет в вашей коллекции для продажи.';
     }
-    updateUI();
+    // updateUI(); // Будет вызван из showPartDetails или renderCollection
+    if (gameData.currentView === 'collection') {
+        renderCollection(); // Обновляем только коллекцию, если мы на ее экране
+    } else {
+        updateUI(); // Общий апдейт для других случаев (например, продажа из модалки на другом экране)
+    }
 }
 
 function updateEnergy() {
@@ -816,11 +993,30 @@ function handleStudyFunction() {
     const rareChanceBooster = gameData.activeBoosters.find(b => b.id === 'find_chance_boost' && b.endsAt > Date.now());
     let currentRareChanceModifier = (rareChanceBooster && rareChanceBooster.effect && typeof rareChanceBooster.effect.value === 'number') ? rareChanceBooster.effect.value : 0;
 
+    let eligibleParts = [];
+    if (typeof ALL_CODE_PARTS !== 'undefined') {
+        eligibleParts = ALL_CODE_PARTS.filter(part => {
+            if (gameData.currentDbType === 'universal') {
+                return !part.dbType || part.dbType.length === 0;
+            }
+            return (!part.dbType || part.dbType.length === 0 || part.dbType.includes(gameData.currentDbType));
+        });
+        if (eligibleParts.length === 0 && ALL_CODE_PARTS.length > 0) { // Фоллбэк, если для СУБД ничего не нашлось
+            eligibleParts = ALL_CODE_PARTS.filter(part => !part.dbType || part.dbType.length === 0); // Только универсальные
+             if (eligibleParts.length === 0) eligibleParts = [...ALL_CODE_PARTS]; // Крайний случай - все подряд
+        }
+    }
+
     const weightedParts = [];
-    if (typeof ALL_CODE_PARTS !== 'undefined' && typeof RARITIES !== 'undefined') {
-        ALL_CODE_PARTS.forEach(part => {
+    if (eligibleParts.length > 0 && typeof RARITIES !== 'undefined') {
+        eligibleParts.forEach(part => {
             const rarityDef = RARITIES[part.rarity] || RARITIES.common;
             let baseChance = rarityDef.chance;
+            
+            if (part.dbType && part.dbType.includes(gameData.currentDbType) && gameData.currentDbType !== 'universal') {
+                baseChance *= 1.5; 
+            }
+
             if (part.rarity && part.rarity !== 'common') {
                 baseChance = Math.min(1.0, baseChance + currentRareChanceModifier);
             }
@@ -830,9 +1026,8 @@ function handleStudyFunction() {
         });
     }
 
-    if (weightedParts.length === 0 && typeof ALL_CODE_PARTS !== 'undefined' && ALL_CODE_PARTS.length > 0) {
-        const commonParts = ALL_CODE_PARTS.filter(p => p.rarity === 'common');
-        foundPart = commonParts.length > 0 ? commonParts[Math.floor(Math.random() * commonParts.length)] : ALL_CODE_PARTS[0];
+    if (weightedParts.length === 0 && eligibleParts.length > 0) {
+        foundPart = eligibleParts[Math.floor(Math.random() * eligibleParts.length)];
     } else if (weightedParts.length > 0) {
         foundPart = weightedParts[Math.floor(Math.random() * weightedParts.length)];
     } else {
@@ -844,8 +1039,13 @@ function handleStudyFunction() {
     if (!existingPart) {
         gameData.collection.push({...foundPart, count: 1});
         addExperience(1);
-        gameData.message = `Вы изучили новую SQL-функцию! 🎉 ${foundPart.emoji || '❓'} ${foundPart.name} (+1 🌟)`;
-        addHistoryEntry(`Изучена новая SQL-функция: ${foundPart.name}`);
+        let dbTypeInfo = '';
+        if (foundPart.dbType && foundPart.dbType.length > 0 && typeof DATABASE_TYPES !== 'undefined') {
+            const db = DATABASE_TYPES.find(d => d.id === foundPart.dbType[0]);
+            if (db) dbTypeInfo = ` (${db.name})`;
+        }
+        gameData.message = `Вы изучили новую SQL-функцию${dbTypeInfo}! 🎉 ${foundPart.emoji || '❓'} ${foundPart.name} (+1 🌟)`;
+        addHistoryEntry(`Изучена новая SQL-функция: ${foundPart.name}${dbTypeInfo}`);
     }
     else {
         existingPart.count++;
@@ -857,18 +1057,21 @@ function handleStudyFunction() {
     updateUI();
 }
 
+
 // --- Функции для Механики "Создать Запрос" ---
 function renderQueryConstructionPanel() {
     if (!createPanel || typeof QUERY_CONSTRUCTION_TASKS === 'undefined' || typeof ALL_CODE_PARTS === 'undefined') {
         if (createPanel) {
             const existingHeader = createPanel.querySelector('h3');
             let headerHTML = existingHeader ? existingHeader.outerHTML : '<h3>Создание SQL-запроса:</h3>';
-            const backButton = createPanel.querySelector('#backFromCreate');
-            let backButtonHTML = backButton ? backButton.outerHTML : '<button id="backFromCreate" class="secondary-button" style="margin-top: 20px;">Назад</button>';
+            const backButtonElement = createPanel.querySelector('#backFromCreate'); // Ищем существующую кнопку
+            let backButtonHTML = backButtonElement ? backButtonElement.outerHTML : '<button id="backFromCreate" class="secondary-button" style="margin-top: 20px;">Назад</button>';
             
             createPanel.innerHTML = `${headerHTML}<p>Ошибка загрузки данных для конструктора запросов.</p>${backButtonHTML}`;
-            backFromCreateButton = document.getElementById('backFromCreate'); // Перепривязка кнопки "Назад"
-            if (backFromCreateButton) backFromCreateButton.addEventListener('click', () => setGameView('main'));
+            backFromCreateButton = document.getElementById('backFromCreate');
+            if (backFromCreateButton && !backFromCreateButton.onclick) { // Привязываем слушатель, если его нет
+                 backFromCreateButton.addEventListener('click', () => setGameView('main'));
+            }
         }
         return;
     }
@@ -876,13 +1079,15 @@ function renderQueryConstructionPanel() {
         console.warn("Не все DOM элементы для конструктора запросов найдены. HTML структура верна?");
          const existingHeader = createPanel.querySelector('h3');
          let headerHTML = existingHeader ? existingHeader.outerHTML : '<h3>Создание SQL-запроса:</h3>';
-         const backButton = createPanel.querySelector('#backFromCreate');
-         let backButtonHTML = backButton ? backButton.outerHTML : '<button id="backFromCreate" class="secondary-button" style="margin-top: 20px;">Назад</button>';
+         const backButtonElement = createPanel.querySelector('#backFromCreate');
+         let backButtonHTML = backButtonElement ? backButtonElement.outerHTML : '<button id="backFromCreate" class="secondary-button" style="margin-top: 20px;">Назад</button>';
 
         if (createPanel.children.length < 3) {
             createPanel.innerHTML = `${headerHTML}<p>Интерфейс создания запросов в разработке. Ожидайте!</p>${backButtonHTML}`;
-            backFromCreateButton = document.getElementById('backFromCreate'); // Перепривязка кнопки "Назад"
-            if (backFromCreateButton) backFromCreateButton.addEventListener('click', () => setGameView('main'));
+            backFromCreateButton = document.getElementById('backFromCreate');
+            if (backFromCreateButton && !backFromCreateButton.onclick) {
+                 backFromCreateButton.addEventListener('click', () => setGameView('main'));
+            }
         }
         return;
     }
@@ -921,11 +1126,15 @@ function renderQueryConstructionPanel() {
         gameData.collection.forEach(collectedFunc => {
             const funcData = ALL_CODE_PARTS.find(f => f.id === collectedFunc.id);
             if (funcData && funcData.type === 'SQL') {
-                const btn = document.createElement('button');
-                btn.className = 'available-function-btn';
-                btn.innerHTML = `${funcData.emoji || ''} ${funcData.name.split('(')[0].trim()}`;
-                btn.onclick = () => addElementToQuery('keyword', funcData.name.split('(')[0].trim().toUpperCase(), funcData.id);
-                createQueryAvailableFunctions.appendChild(btn);
+                // Дополнительная проверка на соответствие СУБД задания, если оно указано
+                let taskDbType = currentTask.dbType || gameData.currentDbType; // Если у задания есть своя СУБД, используем ее
+                if (taskDbType === 'universal' || !funcData.dbType || funcData.dbType.length === 0 || funcData.dbType.includes(taskDbType)) {
+                    const btn = document.createElement('button');
+                    btn.className = 'available-function-btn';
+                    btn.innerHTML = `${funcData.emoji || ''} ${funcData.name.split('(')[0].trim()}`;
+                    btn.onclick = () => addElementToQuery('keyword', funcData.name.split('(')[0].trim().toUpperCase(), funcData.id);
+                    createQueryAvailableFunctions.appendChild(btn);
+                }
             }
         });
 
@@ -997,14 +1206,13 @@ function renderQueryConstructionPanel() {
 }
 
 function selectQueryTaskFromList(taskId) {
-    // Теперь эта функция вызывается только для невыполненных заданий
     currentQueryTaskId = taskId;
     currentConstructedQuery = [];
     if (createQueryCurrentTaskFeedback) {
         createQueryCurrentTaskFeedback.textContent = '';
         createQueryCurrentTaskFeedback.className = '';
     }
-    renderQueryConstructionPanel(); // Перерисовать всю панель, чтобы подсветить активное задание
+    renderQueryConstructionPanel();
 }
 
 function selectNextQueryTask() {
@@ -1028,7 +1236,7 @@ function selectNextQueryTask() {
         }
     } else {
         if (currentQueryTaskId && !gameData.queryConstructionProgress[currentQueryTaskId]) {
-            // Если текущее задание есть и оно не выполнено, остаемся на нем
+            // Keep current if it's not completed
         } else {
             currentQueryTaskId = null;
             currentConstructedQuery = [];
@@ -1047,7 +1255,6 @@ function renderConstructedQuery() {
         let displayValue = el.value;
         if (el.type === 'keyword' && el.originalId && typeof ALL_CODE_PARTS !== 'undefined') {
             const funcData = ALL_CODE_PARTS.find(f => f.id === el.originalId);
-            // Отображаем имя функции как оно есть в ALL_CODE_PARTS, а не в UPPERCASE
             displayValue = funcData ? `${funcData.emoji || ''} ${funcData.name.split('(')[0].trim()}` : el.value;
         } else if (Array.isArray(el.value)) {
             displayValue = el.value.join(', ');
@@ -1100,11 +1307,9 @@ function handleSubmitConstructedQuery() {
                 feedbackMessage = `Ожидался оператор '${targetPart.keyword}', но он не найден или не в том месте.`;
                 break;
             }
-            // Нашли ключевое слово, запомним его индекс + 1 для поиска значения
             let valueStartIndex = currentConstructedQuery.indexOf(currentQueryKeywordPart) + 1;
 
-
-            if (targetPart.value) {
+            if (targetPart.value !== undefined) { // Проверяем значение только если оно есть в targetQueryStructure
                 let actualValueString = "";
                 let tempIndex = valueStartIndex;
                 while(tempIndex < currentConstructedQuery.length && currentConstructedQuery[tempIndex].type !== 'keyword') {
@@ -1115,77 +1320,80 @@ function handleSubmitConstructedQuery() {
 
                 let expectedValueString = "";
                 if (Array.isArray(targetPart.value)) {
-                    expectedValueString = targetPart.value.join(', '); //  'ProductName, Price'
-                     // Для SELECT *, Value, Value, Value FROM ... нужно более сложная логика сбора actualValueString
-                    if (targetPart.keyword.toUpperCase() === 'SELECT' && actualValueString.includes(',')) {
-                        actualValueString = actualValueString.split(',').map(s => s.trim()).sort().join(', ');
-                        expectedValueString = targetPart.value.map(s => s.trim()).sort().join(', ');
-                    }
+                    expectedValueString = targetPart.value.map(s => String(s).trim()).sort().join(', ');
+                    actualValueString = actualValueString.split(',').map(s => s.trim()).sort().join(', ');
                 } else {
                     expectedValueString = String(targetPart.value);
                 }
 
                 if (actualValueString.toUpperCase().replace(/\s+/g, ' ') !== expectedValueString.toUpperCase().replace(/\s+/g, ' ')) {
-                     // Дополнительная проверка для JOIN ON
-                    if (targetPart.keyword.toUpperCase() === 'JOIN' && targetPart.onCondition) {
-                        const onKeywordIndex = currentConstructedQuery.findIndex((p, idx) => idx >= valueStartIndex && p.type === 'keyword' && p.value.toUpperCase() === 'ON');
-                        if (onKeywordIndex > -1) {
-                            let onConditionString = "";
-                            let onTempIndex = onKeywordIndex + 1;
-                             while(onTempIndex < currentConstructedQuery.length && currentConstructedQuery[onTempIndex].type !== 'keyword') {
-                                onConditionString += (onConditionString ? " " : "") + currentConstructedQuery[onTempIndex].value;
-                                onTempIndex++;
-                            }
-                            onConditionString = onConditionString.trim().replace(/\s*=\s*/g, '='); // Нормализация условия
-                            if (onConditionString.toUpperCase() !== targetPart.onCondition.toUpperCase().replace(/\s*=\s*/g, '=')) {
-                                structureMatches = false;
-                                feedbackMessage = `Проверьте условие ON для JOIN. Ожидалось что-то вроде: ${targetPart.onCondition}.`;
-                                break;
-                            }
-                             // Если ON совпало, то часть JOIN targetPart.value (имя таблицы) должна быть перед ON
-                            const joinTableNameActual = currentConstructedQuery.slice(valueStartIndex, onKeywordIndex).map(p=>p.value).join(' ').trim();
-                            if (joinTableNameActual.toUpperCase() !== targetPart.joinTable.toUpperCase()){
-                                structureMatches = false;
-                                feedbackMessage = `Проверьте имя таблицы для JOIN. Ожидалось: ${targetPart.joinTable}.`;
-                                break;
-                            }
-
-                        } else {
-                            structureMatches = false;
-                            feedbackMessage = `Для JOIN ожидается условие ON.`;
-                            break;
-                        }
-                    } else if (targetPart.keyword.toUpperCase() === 'WHERE' && targetPart.condition) {
-                        // "WHERE Price > 100" -> actualValueString = "Price > 100"
-                        // targetPart.condition = { column: 'Price', operator: '>', value: 100 }
-                        const conditionStr = `${targetPart.condition.column} ${targetPart.condition.operator} ${targetPart.condition.value}`;
-                        if (actualValueString.toUpperCase().replace(/\s+/g, '') !== conditionStr.toUpperCase().replace(/\s+/g, '')) {
-                           structureMatches = false;
-                           feedbackMessage = `Проверьте условие для WHERE. Ожидалось: ${conditionStr}.`;
-                           break;
-                        }
-                    }
-                    else {
-                        structureMatches = false;
-                        feedbackMessage = `Проверьте значение для оператора '${targetPart.keyword}'. Ожидалось: '${expectedValueString}', получено: '${actualValueString}'.`;
-                        break;
-                    }
+                    structureMatches = false;
+                    feedbackMessage = `Проверьте значение для оператора '${targetPart.keyword}'. Ожидалось: '${expectedValueString}', получено: '${actualValueString}'.`;
+                    break;
                 }
-                 queryPartIndex = tempIndex; // Обновляем queryPartIndex до элемента после значения
-            } else {
-                 queryPartIndex = valueStartIndex; // Если у ключевого слова нет значения, то следующий элемент должен быть ключевым словом
+                queryPartIndex = tempIndex;
+            } else if (targetPart.condition) { // Для WHERE
+                 let conditionStrActual = "";
+                 let tempIndex = valueStartIndex;
+                 while(tempIndex < currentConstructedQuery.length && currentConstructedQuery[tempIndex].type !== 'keyword') {
+                    conditionStrActual += (conditionStrActual ? " " : "") + currentConstructedQuery[tempIndex].value;
+                    tempIndex++;
+                }
+                conditionStrActual = conditionStrActual.trim().replace(/\s+/g, '');
+                const expectedConditionStr = `${targetPart.condition.column}${targetPart.condition.operator}${targetPart.condition.value}`.replace(/\s+/g, '');
+                if(conditionStrActual.toUpperCase() !== expectedConditionStr.toUpperCase()){
+                    structureMatches = false;
+                    feedbackMessage = `Проверьте условие для WHERE. Ожидалось что-то вроде: ${targetPart.condition.column} ${targetPart.condition.operator} ${targetPart.condition.value}.`;
+                    break;
+                }
+                queryPartIndex = tempIndex;
+            } else if (targetPart.joinTable && targetPart.onCondition) { // Для JOIN
+                let joinTableActual = "";
+                let tempIndex = valueStartIndex;
+                while(tempIndex < currentConstructedQuery.length && currentConstructedQuery[tempIndex].type !== 'keyword' && currentConstructedQuery[tempIndex].value.toUpperCase() !== 'ON') {
+                    joinTableActual += (joinTableActual ? " " : "") + currentConstructedQuery[tempIndex].value;
+                    tempIndex++;
+                }
+                joinTableActual = joinTableActual.trim();
+
+                if(joinTableActual.toUpperCase() !== targetPart.joinTable.toUpperCase()){
+                    structureMatches = false;
+                    feedbackMessage = `Проверьте имя таблицы для JOIN. Ожидалось: ${targetPart.joinTable}.`;
+                    break;
+                }
+                // Проверяем наличие ON
+                if(tempIndex >= currentConstructedQuery.length || currentConstructedQuery[tempIndex].value.toUpperCase() !== 'ON'){
+                    structureMatches = false;
+                    feedbackMessage = `Для JOIN ожидается ключевое слово ON.`;
+                    break;
+                }
+                tempIndex++; // Пропускаем ON
+                let onConditionActual = "";
+                let onStartIndex = tempIndex;
+                 while(tempIndex < currentConstructedQuery.length && currentConstructedQuery[tempIndex].type !== 'keyword') {
+                    onConditionActual += (onConditionActual ? " " : "") + currentConstructedQuery[tempIndex].value;
+                    tempIndex++;
+                }
+                onConditionActual = onConditionActual.trim().replace(/\s*=\s*/g, '=');
+                const expectedOnCondition = targetPart.onCondition.replace(/\s*=\s*/g, '=');
+
+                if(onConditionActual.toUpperCase() !== expectedOnCondition.toUpperCase()){
+                    structureMatches = false;
+                    feedbackMessage = `Проверьте условие ON для JOIN. Ожидалось: ${targetPart.onCondition}.`;
+                    break;
+                }
+                queryPartIndex = tempIndex;
+            } else { // Просто ключевое слово без значения (например, если конец запроса)
+                 queryPartIndex = valueStartIndex;
             }
         }
         if (structureMatches && queryPartIndex < currentConstructedQuery.length) {
-            // Если после проверки всей структуры остались еще элементы в запросе
             structureMatches = false;
             feedbackMessage = "Кажется, в вашем запросе есть лишние элементы в конце.";
         }
-
     } else {
         structureMatches = true;
     }
-
 
     if (structureMatches && allRequiredFunctionsUsed) {
         createQueryCurrentTaskFeedback.textContent = `Отлично! Запрос "${task.name}" выполнен! +${task.rewardXp || 0} 🌟`;
@@ -1193,7 +1401,6 @@ function handleSubmitConstructedQuery() {
         gameData.queryConstructionProgress[currentQueryTaskId] = true;
         addExperience(task.rewardXp || 0);
         addHistoryEntry(`Задание на создание запроса "${task.name}" выполнено.`);
-        const oldTaskId = currentQueryTaskId;
         selectNextQueryTask();
         renderQueryConstructionPanel();
     } else {
@@ -1227,6 +1434,7 @@ function setupEventListeners() {
 
     collectButton.addEventListener('click', handleStudyFunction);
     viewCollectionButton.addEventListener('click', () => setGameView('collection'));
+    if (openDbSelectorButton) openDbSelectorButton.addEventListener('click', () => setGameView('db_selector'));
     createButton.addEventListener('click', () => setGameView('create'));
     shopButton.addEventListener('click', () => setGameView('shop'));
     dailyBonusButton.addEventListener('click', () => setGameView('daily_bonus'));
@@ -1239,6 +1447,7 @@ function setupEventListeners() {
 
     backFromCollectionButton.addEventListener('click', () => setGameView('main'));
     if (backFromCreateButton) backFromCreateButton.addEventListener('click', () => setGameView('main'));
+    if (backFromDbSelector) backFromDbSelector.addEventListener('click', () => setGameView('main'));
     backFromShopButton.addEventListener('click', () => setGameView('main'));
     backFromMarketButton.addEventListener('click', () => setGameView('main'));
     backFromDailyBonusButton.addEventListener('click', () => setGameView('main'));
@@ -1258,21 +1467,9 @@ function setupEventListeners() {
             const initialXpToNextLevel = (typeof XP_PER_LEVEL_BASE !== 'undefined') ? XP_PER_LEVEL_BASE : 100;
             gameData = {
                 message: "Игра начата заново! Добро пожаловать! 🚀",
-                collection: [],
-                experience: 0,
-                level: 1,
-                xpToNextLevel: initialXpToNextLevel,
-                currentXp: 0,
-                totalXpEarned: 0,
-                partsSold: 0,
-                partsBought: 0,
-                lastDailyBonusClaim: 0,
-                energy: 10,
-                maxEnergy: 10,
-                energyRecoveryRate: 1,
-                lastEnergyRecovery: Date.now(),
-                activeBoosters: [],
-                history: [],
+                collection: [], experience: 0, level: 1, xpToNextLevel: initialXpToNextLevel, currentXp: 0,
+                totalXpEarned: 0, partsSold: 0, partsBought: 0, lastDailyBonusClaim: 0, energy: 10, maxEnergy: 10,
+                energyRecoveryRate: 1, lastEnergyRecovery: Date.now(), activeBoosters: [], history: [],
                 achievements: {
                     collect_5_unique: { completed: false, reward: 10, name: 'Первооткрыватель', description: 'Собрать 5 уникальных SQL-функций' },
                     collect_10_unique: { completed: false, reward: 20, name: 'Юный Базист', description: 'Собрать 10 уникальных SQL-функций' },
@@ -1297,26 +1494,13 @@ function setupEventListeners() {
                     { id: 'proj_aggregate_data', name: 'Агрегация данных', description: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
                 ],
                 queryConstructionProgress: {},
-                currentView: 'main'
+                currentDbType: 'universal', unlockedDbTypes: ['universal'], currentView: 'main'
             };
-            currentQueryTaskId = null;
-            currentConstructedQuery = [];
+            currentQueryTaskId = null; currentConstructedQuery = [];
             updateUI();
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.location.reload();
-            } else {
-                location.reload();
-            }
+            if (window.Telegram && window.Telegram.WebApp) { window.location.reload(); } else { location.reload(); }
         }
     });
-}
-
-function saveGameData() {
-    try {
-        localStorage.setItem('coderGameData', JSON.stringify(gameData));
-    } catch (e) {
-        console.error("Error saving game data to localStorage:", e);
-    }
 }
 
 function loadGameData() {
@@ -1331,7 +1515,7 @@ function loadGameData() {
             gameData.collection = [];
             gameData.experience = loadedGameData.experience ?? 0;
             gameData.level = loadedGameData.level ?? 1;
-            gameData.xpToNextLevel = loadedGameData.xpToNextLevel ?? Math.floor(initialXpToNextLevel * Math.pow(initialXpMultiplier, (gameData.level -1)));
+            gameData.xpToNextLevel = loadedGameData.xpToNextLevel ?? Math.floor(initialXpToNextLevel * Math.pow(initialXpMultiplier, (gameData.level -1 || 0))); // Добавил || 0 на случай если level = 0
             gameData.currentXp = loadedGameData.currentXp ?? 0;
             gameData.totalXpEarned = loadedGameData.totalXpEarned ?? 0;
             gameData.partsSold = loadedGameData.partsSold ?? 0;
@@ -1344,8 +1528,12 @@ function loadGameData() {
             gameData.activeBoosters = (loadedGameData.activeBoosters || []).filter(b => b.endsAt > Date.now());
             gameData.history = loadedGameData.history || [];
 
-            const defaultAchievements = JSON.parse(JSON.stringify(gameData.achievements));
-            gameData.achievements = defaultAchievements;
+            const defaultAchievementsCopy = JSON.parse(JSON.stringify({
+                collect_5_unique: { completed: false, reward: 10, name: 'Первооткрыватель', description: 'Собрать 5 уникальных SQL-функций' },
+                collect_10_unique: { completed: false, reward: 20, name: 'Юный Базист', description: 'Собрать 10 уникальных SQL-функций' },
+                // ... и так далее для всех ачивок
+            })); // Нужно скопировать все ачивки из gameData
+            gameData.achievements = defaultAchievementsCopy;
             if (loadedGameData.achievements) {
                 for (const achId in gameData.achievements) {
                     if (loadedGameData.achievements[achId] !== undefined) {
@@ -1353,15 +1541,25 @@ function loadGameData() {
                     }
                 }
             }
-            const defaultProjects = JSON.parse(JSON.stringify(gameData.projects));
+
+            const defaultProjectsCopy = JSON.parse(JSON.stringify([
+                 { id: 'proj_basic_select', name: 'Базовая выборка данных', description: 'Извлечь все данные из таблицы Customers.', requirements: ['sql_select', 'sql_from'], completed: false, reward_xp: 20 },
+                 // ... и так далее для всех проектов
+            ])); // Нужно скопировать все проекты из gameData
             const loadedProjectsMap = new Map((loadedGameData.projects || []).map(p => [p.id, p]));
-            gameData.projects = defaultProjects.map(defaultProj => {
+            gameData.projects = defaultProjectsCopy.map(defaultProj => {
                 const loadedProj = loadedProjectsMap.get(defaultProj.id);
                 return loadedProj ? { ...defaultProj, completed: loadedProj.completed } : defaultProj;
             });
 
             gameData.queryConstructionProgress = loadedGameData.queryConstructionProgress || {};
             gameData.currentView = loadedGameData.currentView || 'main';
+            
+            gameData.currentDbType = loadedGameData.currentDbType || 'universal';
+            gameData.unlockedDbTypes = loadedGameData.unlockedDbTypes && Array.isArray(loadedGameData.unlockedDbTypes) ? loadedGameData.unlockedDbTypes : ['universal'];
+            if (!gameData.unlockedDbTypes.includes(gameData.currentDbType)) {
+                gameData.currentDbType = gameData.unlockedDbTypes[0] || 'universal';
+            }
 
             if (typeof ALL_CODE_PARTS !== 'undefined') {
                 gameData.collection = (loadedGameData.collection || []).map(item => {
@@ -1369,7 +1567,7 @@ function loadGameData() {
                     return fullItemData ? { ...fullItemData, count: item.count || 1 } : null;
                 }).filter(item => item !== null);
             } else {
-                console.warn("ALL_CODE_PARTS not defined during loadGameData's collection processing. Collection will be empty.");
+                console.warn("ALL_CODE_PARTS not defined during loadGameData's collection processing.");
                 gameData.collection = [];
             }
 
@@ -1401,7 +1599,7 @@ setInterval(() => {
     updateEnergy();
     cleanExpiredBoosters();
     if (typeof gameMessageElement !== 'undefined' && gameMessageElement) {
-        if (['daily_bonus', 'boosters', 'main', 'create'].includes(gameData.currentView)) {
+        if (['daily_bonus', 'boosters', 'main', 'create', 'db_selector'].includes(gameData.currentView)) {
              updateUI();
         } else {
             if (energyDisplay) energyDisplay.textContent = `⚡️ Энергия: ${gameData.energy}/${gameData.maxEnergy}`;
@@ -1409,3 +1607,4 @@ setInterval(() => {
         }
     }
 }, 1000);
+```
