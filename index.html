@@ -6,48 +6,7 @@
     <title>SQL Code Collector Game</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* ... (стили для конструктора запросов остаются здесь) ... */
-        .query-constructor-container { /* ... */ }
-        .query-task-list { /* ... */ }
-        /* ... и так далее ... */
-        .feedback-error { /* ... */ }
-        .input-group { /* ... */ }
-
-        /* НОВОЕ: Стили для элементов управления СУБД */
-        #currentDbDisplay {
-            font-size: var(--font-size-small);
-            color: var(--light-text-color);
-            margin-top: 8px;
-            text-align: center; /* или flex-start если в header-left */
-        }
-        .small-utility-button {
-            padding: 3px 8px;
-            font-size: 0.75em;
-            margin-left: 8px;
-            background: var(--border-color); /* Нейтральный цвет */
-            color: var(--text-color);
-            box-shadow: none;
-        }
-        .small-utility-button:hover {
-            background: #5a6270;
-        }
-        #dbTypeSelectorPanel .list-item.db-type-item { /* Стили для элементов в списке СУБД */
-            cursor: default; /* По умолчанию не кликабельно, только кнопка внутри */
-        }
-        #dbTypeSelectorPanel .list-item.db-type-item.active {
-            border-left: 4px solid var(--primary-color);
-        }
-        #dbTypeSelectorPanel .list-item.db-type-item button {
-            width: auto; /* Кнопки выбора СУБД не на всю ширину */
-            padding: 8px 15px;
-        }
-        #dbTypeSelectorPanel .list-item.db-type-item button:disabled {
-            background: var(--card-background) !important; /* Чтобы отличалась от обычной disabled */
-            color: var(--light-text-color) !important;
-            border: 1px solid var(--border-color);
-        }
-    </style>
+    <!-- Inline стили УБРАНЫ отсюда, они теперь полностью в style.css -->
 </head>
 <body>
     <div class="game-container">
@@ -58,10 +17,8 @@
                 <div class="progress-bar-container">
                     <div id="levelProgressBar" class="progress-bar"></div>
                 </div>
-                 <!-- НОВОЕ: Место для отображения текущей СУБД -->
                 <div id="currentDbDisplayContainer" style="margin-top: 10px;">
                     <span id="currentDbDisplay">Текущая СУБД: Загрузка...</span>
-                    <!-- Кнопка openDbSelectorButton может быть здесь или в основном меню -->
                 </div>
             </div>
             <div class="header-right">
@@ -74,7 +31,6 @@
         <div class="buttons-container" id="mainButtons">
             <button id="collectButton">Изучить SQL-функцию 🎓 (1 ⚡️)</button>
             <button id="viewCollectionButton" class="secondary-button">Моя коллекция 🎒</button>
-            <!-- НОВОЕ: Кнопка для смены/выбора СУБД -->
             <button id="openDbSelectorButton" class="secondary-button">Специализация СУБД 💻</button>
             <button id="shopButton" class="secondary-button">Магазин 💰</button>
             <button id="dailyBonusButton" class="secondary-button">Ежедневный бонус 🎁</button>
@@ -87,10 +43,13 @@
             <button id="createButton" class="secondary-button">Создать запрос 🛠️</button>
         </div>
 
-        <!-- Панель выбора СУБД (НОВОЕ) -->
         <div id="dbTypeSelectorPanel" class="panel" style="display: none;">
+            <h3>Выберите специализацию СУБД:</h3>
             <!-- Содержимое будет генерироваться из JS -->
-            <p>Загрузка списка СУБД...</p>
+            <div class="list-grid"> <!-- Добавляем list-grid для элементов СУБД -->
+                 <p>Загрузка списка СУБД...</p>
+            </div>
+            <button id="backFromDbSelector" class="secondary-button" style="margin-top: 20px;">Назад</button> <!-- Кнопка Назад для этой панели -->
         </div>
 
         <div id="collectionDisplay" class="panel" style="display: none;">
@@ -130,7 +89,6 @@
             <button id="backFromCreate" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
 
-        <!-- ... (остальные панели без изменений) ... -->
         <div id="shopPanel" class="panel" style="display: none;">
             <h3>Магазин SQL-функций:</h3>
             <div id="buyableItemsList" class="list-grid">
@@ -196,7 +154,6 @@
             </div>
             <button id="backFromHistory" class="secondary-button" style="margin-top: 20px;">Назад</button>
         </div>
-
 
         <button id="resetGameButton" class="danger-button" style="margin-top: 30px;">Начать игру заново (удалить все данные) 💥</button>
     </div>
