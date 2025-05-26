@@ -793,4 +793,79 @@ const ALL_CODE_PARTS = [
         type: 'SQL',
         rarity: 'legendary'
     }
+    
+    const QUERY_CONSTRUCTION_TASKS = [
+    {
+        id: 'task_select_all_users',
+        name: 'Простая выборка пользователей',
+        description: 'Создайте SQL-запрос, чтобы выбрать все столбцы (`*`) из таблицы `Users`.',
+        targetQueryStructure: [ // Ожидаемая последовательность ключевых операторов
+            { keyword: 'SELECT', value: '*' },
+            { keyword: 'FROM', value: 'Users' }
+        ],
+        requiredFunctions: ['sql_select', 'sql_from'], // ID функций, которые должны быть в запросе
+        availableTables: ['Users', 'Products', 'Orders'], // Для подсказок или выбора
+        availableColumns: { // Для подсказок или выбора, если нужно
+            'Users': ['UserID', 'UserName', 'Email'],
+            'Products': ['ProductID', 'ProductName', 'Price'],
+            'Orders': ['OrderID', 'CustomerID', 'OrderDate']
+        },
+        rewardXp: 15,
+        unlocksNextTaskId: 'task_select_specific_columns', // ID следующего задания
+        isCompleted: false // Будет обновляться в gameData
+    },
+    {
+        id: 'task_select_specific_columns',
+        name: 'Выборка конкретных столбцов',
+        description: 'Создайте SQL-запрос, чтобы выбрать столбцы `ProductName` и `Price` из таблицы `Products`.',
+        targetQueryStructure: [
+            { keyword: 'SELECT', value: ['ProductName', 'Price'] }, // Может быть массив строк
+            { keyword: 'FROM', value: 'Products' }
+        ],
+        requiredFunctions: ['sql_select', 'sql_from'],
+        availableTables: ['Users', 'Products', 'Orders'],
+        availableColumns: {
+            'Users': ['UserID', 'UserName', 'Email'],
+            'Products': ['ProductID', 'ProductName', 'Price'],
+            'Orders': ['OrderID', 'CustomerID', 'OrderDate']
+        },
+        rewardXp: 20,
+        unlocksNextTaskId: 'task_filter_products',
+        isCompleted: false
+    },
+    {
+        id: 'task_filter_products',
+        name: 'Фильтрация продуктов',
+        description: 'Создайте SQL-запрос, чтобы выбрать `ProductName` из таблицы `Products`, где `Price` больше `100`.',
+        targetQueryStructure: [
+            { keyword: 'SELECT', value: 'ProductName' },
+            { keyword: 'FROM', value: 'Products' },
+            { keyword: 'WHERE', condition: { column: 'Price', operator: '>', value: 100 } } // Более сложная структура для WHERE
+        ],
+        requiredFunctions: ['sql_select', 'sql_from', 'sql_where'],
+        availableTables: ['Users', 'Products', 'Orders'],
+        availableColumns: {
+            'Products': ['ProductID', 'ProductName', 'Price']
+        },
+        rewardXp: 30,
+        unlocksNextTaskId: 'task_join_tables', // Пример следующего задания
+        isCompleted: false
+    },
+    {
+        id: 'task_join_tables',
+        name: 'Объединение таблиц',
+        description: 'Создайте SQL-запрос, чтобы выбрать `Orders.OrderID` и `Customers.CustomerName` из таблиц `Orders` и `Customers`, объединив их по `CustomerID`.',
+        targetQueryStructure: [
+            { keyword: 'SELECT', value: ['Orders.OrderID', 'Customers.CustomerName'] },
+            { keyword: 'FROM', value: 'Orders' },
+            { keyword: 'JOIN', joinTable: 'Customers', onCondition: 'Orders.CustomerID = Customers.CustomerID' }
+        ],
+        requiredFunctions: ['sql_select', 'sql_from', 'sql_join'], // или sql_inner_join
+        // availableTables и availableColumns можно расширить или сделать более динамичными
+        rewardXp: 50,
+        unlocksNextTaskId: null, // Последнее задание в этой цепочке
+        isCompleted: false
+    }
+    // Можно добавлять более сложные задания: с GROUP BY, ORDER BY, подзапросами и т.д.
+
 ];
