@@ -1,4 +1,4 @@
-// game_data.js - Список всех возможных SQL-функций и их частей
+// game_data.js - Список всех возможных SQL-функций и их частей, а также задания для конструктора запросов
 const ALL_CODE_PARTS = [
     {
         id: 'sql_select',
@@ -558,7 +558,6 @@ const ALL_CODE_PARTS = [
         type: 'SQL',
         rarity: 'epic'
     },
-    // --- НОВЫЕ ФУНКЦИИ ---
     {
         id: 'sql_left_outer_join',
         name: 'LEFT OUTER JOIN',
@@ -713,7 +712,7 @@ const ALL_CODE_PARTS = [
         rarity: 'epic'
     },
     {
-        id: 'sql_denyz',
+        id: 'sql_deny', // Исправлена опечатка denyz -> deny
         name: 'DENY',
         emoji: '⛔',
         description: 'Запрещает разрешения на объект базы данных.',
@@ -793,33 +792,34 @@ const ALL_CODE_PARTS = [
         type: 'SQL',
         rarity: 'legendary'
     }
-    
-    const QUERY_CONSTRUCTION_TASKS = [
+];
+
+const QUERY_CONSTRUCTION_TASKS = [
     {
         id: 'task_select_all_users',
         name: 'Простая выборка пользователей',
         description: 'Создайте SQL-запрос, чтобы выбрать все столбцы (`*`) из таблицы `Users`.',
-        targetQueryStructure: [ // Ожидаемая последовательность ключевых операторов
+        targetQueryStructure: [
             { keyword: 'SELECT', value: '*' },
             { keyword: 'FROM', value: 'Users' }
         ],
-        requiredFunctions: ['sql_select', 'sql_from'], // ID функций, которые должны быть в запросе
-        availableTables: ['Users', 'Products', 'Orders'], // Для подсказок или выбора
-        availableColumns: { // Для подсказок или выбора, если нужно
+        requiredFunctions: ['sql_select', 'sql_from'],
+        availableTables: ['Users', 'Products', 'Orders'],
+        availableColumns: {
             'Users': ['UserID', 'UserName', 'Email'],
             'Products': ['ProductID', 'ProductName', 'Price'],
             'Orders': ['OrderID', 'CustomerID', 'OrderDate']
         },
         rewardXp: 15,
-        unlocksNextTaskId: 'task_select_specific_columns', // ID следующего задания
-        isCompleted: false // Будет обновляться в gameData
+        unlocksNextTaskId: 'task_select_specific_columns',
+        isCompleted: false // Этот флаг не используется здесь, он будет в gameData
     },
     {
         id: 'task_select_specific_columns',
         name: 'Выборка конкретных столбцов',
         description: 'Создайте SQL-запрос, чтобы выбрать столбцы `ProductName` и `Price` из таблицы `Products`.',
         targetQueryStructure: [
-            { keyword: 'SELECT', value: ['ProductName', 'Price'] }, // Может быть массив строк
+            { keyword: 'SELECT', value: ['ProductName', 'Price'] },
             { keyword: 'FROM', value: 'Products' }
         ],
         requiredFunctions: ['sql_select', 'sql_from'],
@@ -840,7 +840,7 @@ const ALL_CODE_PARTS = [
         targetQueryStructure: [
             { keyword: 'SELECT', value: 'ProductName' },
             { keyword: 'FROM', value: 'Products' },
-            { keyword: 'WHERE', condition: { column: 'Price', operator: '>', value: 100 } } // Более сложная структура для WHERE
+            { keyword: 'WHERE', condition: { column: 'Price', operator: '>', value: 100 } }
         ],
         requiredFunctions: ['sql_select', 'sql_from', 'sql_where'],
         availableTables: ['Users', 'Products', 'Orders'],
@@ -848,7 +848,7 @@ const ALL_CODE_PARTS = [
             'Products': ['ProductID', 'ProductName', 'Price']
         },
         rewardXp: 30,
-        unlocksNextTaskId: 'task_join_tables', // Пример следующего задания
+        unlocksNextTaskId: 'task_join_tables',
         isCompleted: false
     },
     {
@@ -856,16 +856,20 @@ const ALL_CODE_PARTS = [
         name: 'Объединение таблиц',
         description: 'Создайте SQL-запрос, чтобы выбрать `Orders.OrderID` и `Customers.CustomerName` из таблиц `Orders` и `Customers`, объединив их по `CustomerID`.',
         targetQueryStructure: [
-            { keyword: 'SELECT', value: ['Orders.OrderID', 'Customers.CustomerName'] },
+            { keyword: 'SELECT', value: ['Orders.OrderID', 'Customers.CustomerName'] }, // Предполагается, что игрок должен ввести полное имя
             { keyword: 'FROM', value: 'Orders' },
-            { keyword: 'JOIN', joinTable: 'Customers', onCondition: 'Orders.CustomerID = Customers.CustomerID' }
+            { keyword: 'JOIN', joinTable: 'Customers', onCondition: 'Orders.CustomerID = Customers.CustomerID' } // Упрощенное условие для проверки
         ],
         requiredFunctions: ['sql_select', 'sql_from', 'sql_join'], // или sql_inner_join
-        // availableTables и availableColumns можно расширить или сделать более динамичными
+        availableTables: ['Users', 'Products', 'Orders', 'Customers'], // Добавим Customers
+        availableColumns: {
+            'Users': ['UserID', 'UserName', 'Email'],
+            'Products': ['ProductID', 'ProductName', 'Price'],
+            'Orders': ['OrderID', 'CustomerID', 'OrderDate'],
+            'Customers': ['CustomerID', 'CustomerName', 'City'] // Добавим Customers
+        },
         rewardXp: 50,
-        unlocksNextTaskId: null, // Последнее задание в этой цепочке
+        unlocksNextTaskId: null,
         isCompleted: false
     }
-    // Можно добавлять более сложные задания: с GROUP BY, ORDER BY, подзапросами и т.д.
-
 ];
