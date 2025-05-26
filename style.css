@@ -24,7 +24,7 @@
     --border-radius-medium: 8px;
     --border-radius-small: 6px;
 
-    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.2); /* Slightly more prominent shadow for dark theme */
+    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.2);
     --shadow-medium: 0 8px 24px rgba(0, 0, 0, 0.3);
     --inner-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
 
@@ -32,14 +32,13 @@
     --energy-color: #F8D568; /* Soft Amber */
 
     --font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-    --font-size-base: 0.9em; /* Чуть меньше базовый размер */
-    --font-size-small: 0.8em; /* Для описаний и мелких деталей, еще меньше */
-    --font-size-large: 1.0em; /* Для важных элементов, вроде ресурсов, чуть меньше */
+    --font-size-base: 0.9em;
+    --font-size-small: 0.8em;
+    --font-size-large: 1.0em;
 }
 
-/* Общий сброс для всех элементов */
 * {
-    box-sizing: border-box; /* Всегда учитываем padding и border в ширине/высоте */
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
@@ -54,15 +53,15 @@ body {
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    font-size: var(--font-size-base); /* Применяем базовый размер шрифта */
-    line-height: 1.5; /* Улучшенная читаемость */
+    font-size: var(--font-size-base);
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-y: auto; /* Allow scrolling on body if content truly overflows everything */
+    overflow-y: auto;
 }
 
 .game-container {
-    max-width: 680px; /* Optimal width for 3-column layout */
+    max-width: 680px; /* Оставим max-width для общего контейнера */
     width: 100%;
     background-color: var(--card-background);
     border-radius: var(--border-radius-large);
@@ -71,19 +70,17 @@ body {
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* Enable scrolling within the game container */
-    max-height: calc(100vh - 40px); /* Account for body padding */
+    overflow-y: auto;
+    max-height: calc(100vh - 40px);
     margin: auto;
     animation: fadeIn 0.5s ease-out;
 }
 
-/* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Header Info */
 .header-info {
     display: flex;
     justify-content: space-between;
@@ -118,11 +115,6 @@ body {
 .header-info #levelDisplay { color: var(--text-color); font-size: var(--font-size-base); }
 .header-info #energyDisplay { color: var(--energy-color); font-size: var(--font-size-large); }
 
-.header-info span .emoji {
-    margin-right: 4px;
-    font-size: 1.1em;
-}
-
 .progress-bar-container {
     background-color: #555A67;
     border-radius: 5px;
@@ -140,7 +132,6 @@ body {
     transition: width 0.3s ease-out;
 }
 
-/* Game Message */
 .message {
     margin-bottom: 25px;
     font-size: var(--font-size-large);
@@ -148,10 +139,9 @@ body {
     color: var(--primary-color);
     min-height: 36px;
     text-align: center;
-    line-height: 1.3; /* Для лучшей читаемости одной строки */
+    line-height: 1.3;
 }
 
-/* Buttons Container */
 .buttons-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -174,7 +164,6 @@ button {
     position: relative;
     overflow: hidden;
     text-align: center;
-    /* Убедимся, что фон градиента не исчезает на hover/active */
     background-size: 100% 100%;
     background-position: center;
 }
@@ -206,7 +195,7 @@ button:active {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 button:disabled {
-    background: #555A67 !important; /* !important для уверенности */
+    background: #555A67 !important;
     box-shadow: none !important;
     transform: none !important;
     cursor: not-allowed !important;
@@ -214,23 +203,22 @@ button:disabled {
     color: #929292 !important;
 }
 
-/* Specific Button Styles */
 .secondary-button {
     background: var(--secondary-gradient);
 }
 .secondary-button:hover {
-    background: var(--secondary-gradient);
+    background: var(--secondary-gradient); /* Ensure gradient stays on hover for secondary */
 }
 
 .danger-button {
-    background-color: var(--danger-color);
+    background-color: var(--danger-color); /* Solid color for danger for clarity */
+    background-image: none; /* Remove gradient if any was inherited */
     box-shadow: 0 4px 12px rgba(250, 128, 114, 0.2);
 }
 .danger-button:hover {
     background-color: var(--danger-hover-color);
 }
 
-/* Panel Styles (Collection, Shop, etc.) */
 .panel {
     background-color: var(--card-background);
     padding: 25px;
@@ -264,71 +252,69 @@ button:disabled {
 /* List Item Styles (for Collection, Shop, Market, Boosters) */
 .list-grid {
     display: grid;
-    /* Устанавливаем 3 столбца явно, без auto-fill */
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px; /* Увеличиваем отступы между элементами */
-    /* Дополнительные свойства для выравнивания элементов в сетке */
-    align-items: start; /* Выравнивает элементы по верхнему краю ячейки */
-    justify-content: center; /* Центрирует элементы в ячейке */
+    /* ИЗМЕНЕНО: Используем auto-fit для адаптивного количества колонок */
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* 160px - минимальная ширина элемента, можно настроить */
+    gap: 15px;
+    align-items: stretch; /* ИЗМЕНЕНО: Растягиваем элементы, чтобы они занимали одинаковую высоту в ряду */
+    justify-content: center; /* Не всегда нужно с auto-fit, но пусть будет */
 }
 
 .list-item {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    padding: 15px; /* Увеличиваем внутренние отступы */
-    background-color: #444955; /* Slightly lighter card background */
-    border-radius: var(--border-radius-medium); /* Делаем чуть более квадратными */
+    /* align-items: flex-start; - уже не так нужно, т.к. flex-direction: column */
+    padding: 15px;
+    background-color: #444955;
+    border-radius: var(--border-radius-medium);
     border: 1px solid var(--border-color);
     text-align: left;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
     cursor: pointer;
-    font-size: var(--font-size-small); /* Уменьшаем основной текст элемента списка */
-    height: 100%; /* Гарантируем одинаковую высоту в сетке */
-    box-sizing: border-box; /* Учитываем padding и border в размере */
+    font-size: var(--font-size-small);
+    /* height: 100%; Убрано, т.к. align-items: stretch на гриде сделает это */
+    box-sizing: border-box;
 }
 .list-item:hover {
-    transform: translateY(-2px); /* Чуть больше подъем */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Чуть больше тень */
-    background-color: #4C525E; /* Slightly lighter on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background-color: #4C525E;
 }
 
 .list-item-main {
-    flex-grow: 1;
-    margin-bottom: 10px; /* Увеличиваем отступ перед кнопкой */
+    flex-grow: 1; /* Позволяет основному контенту занимать доступное пространство */
+    margin-bottom: 10px;
     width: 100%;
 }
 .list-item-name {
     font-weight: 700;
-    font-size: var(--font-size-base); /* Название элемента сохраняет читаемость */
+    font-size: var(--font-size-base);
     color: var(--text-color);
-    display: flex;
+    display: flex; /* Оставляем для emoji и текста в ряд */
     align-items: center;
-    margin-bottom: 6px; /* Отступ после названия */
-    line-height: 1.2; /* Улучшаем интерлиньяж для заголовка */
+    margin-bottom: 6px;
+    line-height: 1.2;
 }
-.list-item-name .emoji {
-    margin-right: 8px; /* Увеличиваем отступ эмодзи */
-    font-size: 1.2em; /* Эмодзи чуть крупнее для акцента */
+.list-item-name .emoji { /* Такого класса нет, но если бы был - для эмодзи в названии */
+    margin-right: 8px;
+    font-size: 1.2em;
 }
 .list-item-description {
-    font-size: var(--font-size-small); /* Описание чуть меньше */
+    font-size: var(--font-size-small);
     color: var(--light-text-color);
-    line-height: 1.4; /* Улучшаем интерлиньяж для читаемости */
+    line-height: 1.4;
 }
 
-
 .item-action-button {
-    padding: 10px 12px; /* Увеличиваем padding кнопки */
-    font-size: var(--font-size-small); /* Размер текста кнопки */
+    padding: 10px 12px;
+    font-size: var(--font-size-small);
     border-radius: var(--border-radius-small);
     width: 100%;
     box-shadow: none;
     text-transform: none;
     font-weight: 600;
     background: var(--primary-gradient);
-    margin-top: auto; /* Прижимает кнопку к низу элемента */
+    margin-top: auto; /* Прижимает кнопку к низу элемента, если flex-direction: column */
 }
 .item-action-button:hover {
     transform: translateY(-1px);
@@ -336,21 +322,21 @@ button:disabled {
 }
 
 .buy-button { background: var(--secondary-gradient); }
-.buy-button:hover { background: var(--secondary-gradient); }
-.sell-button { background-color: var(--danger-color); }
+.buy-button:hover { background: var(--secondary-gradient); } /* Ensure gradient stays */
+.sell-button { background-color: var(--danger-color); background-image: none; } /* Solid color */
 .sell-button:hover { background-color: var(--danger-hover-color); }
 
-/* Specific Panel Styles */
-#marketPanel h3 { color: #A8D9A5; border-color: #A8D9A5; } /* Softer Green */
+
+#marketPanel h3 { color: #A8D9A5; border-color: #A8D9A5; }
 .market-item .list-item-name { color: #A8D9A5; }
-.market-buy-button { background: linear-gradient(45deg, #A8D9A5 0%, #8CC28D 100%); color: #3B4049; } /* Dark text on light button */
+.market-buy-button { background: linear-gradient(45deg, #A8D9A5 0%, #8CC28D 100%); color: #3B4049; }
 .market-buy-button:hover { background: linear-gradient(45deg, #97C796 0%, #7CB27D 100%); }
 
-#dailyBonusPanel h3 { color: #F8D568; border-color: #F8D568; } /* Amber */
-#claimDailyBonusButton { background: linear-gradient(45deg, #F8D568 0%, #F5C656 100%); color: #3B4049; } /* Dark text on light button */
+#dailyBonusPanel h3 { color: #F8D568; border-color: #F8D568; }
+#claimDailyBonusButton { background: linear-gradient(45deg, #F8D568 0%, #F5C656 100%); color: #3B4049; }
 #claimDailyBonusButton:hover { background: linear-gradient(45deg, #E0BF4F 0%, #E0AE4F 100%); }
 
-#achievementsPanel h3 { color: #F8D568; border-color: #F8D568; } /* Amber */
+#achievementsPanel h3 { color: #F8D568; border-color: #F8D568; }
 .achievement-item {
     background-color: #4C525E;
     border: 1px solid #5A6270;
@@ -372,7 +358,7 @@ button:disabled {
     font-weight: 600;
 }
 
-#statsPanel h3 { color: #9DA6B2; border-color: #9DA6B2; } /* Lighter Grey */
+#statsPanel h3 { color: #9DA6B2; border-color: #9DA6B2; }
 #statsPanel p { margin: 6px 0; font-size: var(--font-size-small); color: var(--light-text-color); }
 #statsPanel strong { color: var(--text-color); font-weight: 600; }
 
@@ -413,11 +399,11 @@ button:disabled {
 }
 .project-action-button {
     margin-top: 15px;
-    width: auto;
+    width: auto; /* Keep auto width for project buttons */
     background: var(--secondary-gradient);
 }
 
-#boostersPanel h3 { color: #B8A8E8; border-color: #B8A8E8; } /* Lighter Purple */
+#boostersPanel h3 { color: #B8A8E8; border-color: #B8A8E8; }
 .booster-item {
     display: flex;
     justify-content: space-between;
@@ -435,13 +421,13 @@ button:disabled {
     box-shadow: none;
     font-size: var(--font-size-small);
     padding: 8px 15px;
-    color: #3B4049;
+    color: #3B4049; /* Dark text on light button */
 }
 .booster-item button:hover {
     background: linear-gradient(45deg, #8B7AC2 0%, #A08CDD 100%);
 }
 
-#historyPanel h3 { color: #6CCECB; border-color: #6CCECB; } /* Teal */
+#historyPanel h3 { color: #6CCECB; border-color: #6CCECB; }
 .history-entry {
     padding: 8px 0;
     border-bottom: 1px dotted #4B5263;
@@ -460,9 +446,8 @@ button:disabled {
     width: 100%;
 }
 
-/* Modal for detailed info */
 .modal {
-    display: none;
+    display: none; /* Initially hidden, JS will control this */
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -472,14 +457,14 @@ button:disabled {
     overflow: auto;
     background-color: rgba(0,0,0,0.7);
     backdrop-filter: blur(5px);
-    animation: fadeInModal 0.2s ease-out forwards;
-    display: flex; /* Ensure it's flex so justify/align work */
+    /* animation: fadeInModal 0.2s ease-out forwards; - убрал, т.к. display:flex ниже перебивает */
+    /* display: flex; Убрано, чтобы не было бага с display: none */
     justify-content: center;
     align-items: center;
 }
 .modal-content {
     background-color: var(--card-background);
-    margin: auto;
+    margin: auto; /* Центрирует, если modal не flex */
     padding: 25px;
     border-radius: var(--border-radius-large);
     box-shadow: var(--shadow-medium);
@@ -491,7 +476,7 @@ button:disabled {
     border: 1px solid var(--border-color);
     color: var(--text-color);
 }
-@keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
+/* @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } } */
 @keyframes slideInModal {
     0% { transform: translateY(-50px) scale(0.95); opacity: 0; }
     100% { transform: translateY(0) scale(1); opacity: 1; }
@@ -525,7 +510,7 @@ button:disabled {
     font-size: var(--font-size-base);
 }
 .modal-content strong {
-    color: var(--text-color);
+    color: var(--text-color); /* Ensure strong tag inherits color */
     font-weight: 600;
 }
 .modal-content pre {
@@ -555,13 +540,9 @@ button:disabled {
     font-size: var(--font-size-base);
 }
 
-
-/* Responsive adjustments */
+/* Responsive adjustments for list-grid (теперь не нужны отдельные @media для list-grid, т.к. auto-fit) */
 @media (max-width: 768px) {
-    .list-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 столбца на планшетах */
-        gap: 12px;
-    }
+    /* Общие правки для планшетов, если нужны */
 }
 
 @media (max-width: 600px) {
@@ -586,18 +567,20 @@ button:disabled {
         margin-top: 5px;
     }
     .buttons-container {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Можно оставить minmax и для кнопок */
         gap: 10px;
     }
     button {
         padding: 10px 12px;
-        font-size: var(--font-size-base);
+        font-size: var(--font-size-base); /* Был var(--font-size-base) и в общем стиле, тут можно и уменьшить, если кнопки мелкие */
     }
     .panel h3 {
         font-size: 1.4em;
     }
-    .list-grid {
-        grid-template-columns: 1fr; /* 1 столбец на очень маленьких экранах */
+    /* list-grid теперь адаптивный сам по себе, но можно добавить minmax(..., 1fr) если хотим 1 колонку */
+     .list-grid {
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Уменьшим min для мобильных, чтобы влезало 2, или сделаем 1fr */
+        /* или если точно 1 колонка: grid-template-columns: 1fr; */
         gap: 10px;
     }
     .list-item {
@@ -631,9 +614,192 @@ button:disabled {
 
 @media (max-width: 400px) {
     .buttons-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Кнопки главного меню в один столбец */
     }
     .list-item-main {
         margin-bottom: 5px;
     }
-                          }
+    .list-grid {
+        /* Для очень маленьких экранов, если хотим точно 1 колонку для карточек функций */
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Стили для конструктора запросов - из HTML перенесены сюда */
+.query-constructor-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.query-task-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: var(--border-radius-medium);
+    background-color: #333842;
+}
+.query-task-list-item {
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s; /* Добавил color и border-color в transition */
+}
+.query-task-list-item:hover {
+    background-color: #4a505c;
+}
+.query-task-list-item.active-task {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-hover-color);
+}
+.query-task-list-item.completed-task {
+    text-decoration: line-through;
+    color: var(--light-text-color);
+    background-color: #3a3f4a;
+    cursor: default; /* Нельзя выбрать выполненное */
+}
+.query-task-list-item.completed-task:hover { /* Убрать эффект ховера для выполненных */
+    background-color: #3a3f4a;
+}
+
+
+#createQueryTaskDescription {
+    background-color: #333842;
+    padding: 15px;
+    border-radius: var(--border-radius-medium);
+    border: 1px solid var(--border-color);
+    margin-bottom: 15px; /* Можно убрать, т.к. gap у родителя */
+}
+#createQueryTaskDescription h4 { /* Стили уже есть в .panel h4, но можно переопределить если нужно */
+    margin-top: 0;
+    color: var(--secondary-color); /* Пример переопределения */
+}
+#createQueryTaskDescription p {
+    font-size: 0.95em;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+#createQueryAvailableFunctions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Уменьшил gap */
+    padding: 10px;
+    background-color: #333842;
+    border-radius: var(--border-radius-medium);
+    border: 1px solid var(--border-color);
+    min-height: 50px;
+}
+.available-function-btn, .available-value-btn {
+    padding: 6px 10px; /* Уменьшил padding */
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    font-size: 0.85em; /* Уменьшил шрифт */
+    transition: background-color 0.2s, transform 0.1s;
+    background-color: var(--secondary-color); /* Базовый цвет */
+}
+.available-function-btn:hover, .available-value-btn:hover {
+    background-color: var(--secondary-hover-color);
+    transform: translateY(-1px);
+}
+.available-function-btn.disabled, .available-value-btn.disabled {
+    background-color: #555A67 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+    transform: none !important;
+}
+/* Можно добавить специфичные цвета для разных типов кнопок, если нужно */
+.available-value-btn[data-type="table"] { background-color: #5DADE2; } /* Голубой для таблиц */
+.available-value-btn[data-type="table"]:hover { background-color: #3498DB; }
+.available-value-btn[data-type="column"] { background-color: #58D68D; } /* Зеленый для колонок */
+.available-value-btn[data-type="column"]:hover { background-color: #2ECC71; }
+.available-value-btn[data-type="star"] { background-color: #F1C40F; color: #333; } /* Желтый для * */
+.available-value-btn[data-type="star"]:hover { background-color: #F39C12; }
+.available-value-btn[data-type="custom-text"],
+.available-value-btn[data-type="custom-number"] { background-color: #E59866; } /* Оранжевый для пользовательского ввода */
+.available-value-btn[data-type="custom-text"]:hover,
+.available-value-btn[data-type="custom-number"]:hover { background-color: #DC7633; }
+
+
+#createQueryConstructionArea {
+    min-height: 80px;
+    background-color: #22252A;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    padding: 15px;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    color: #E6E6E6;
+    line-height: 1.6;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px; /* Чуть больше для читаемости */
+    align-items: center;
+}
+.query-element {
+    padding: 5px 10px; /* Чуть больше padding */
+    border-radius: var(--border-radius-small);
+    background-color: #444955;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    border: 1px solid transparent; /* для эффекта при ховере */
+}
+.query-element:hover {
+    background-color: var(--danger-hover-color); /* Более темный красный */
+    color: white;
+    border-color: var(--danger-color);
+}
+.query-element-keyword { color: #C678DD; font-weight: bold; }
+.query-element-table { color: #61AFEF; }
+.query-element-column { color: #98C379; }
+.query-element-value { color: #D19A66; }
+.query-element-operator { color: #56B6C2; font-weight: bold; } /* Например для > < = */
+
+#createQuerySubmitButton {
+    margin-top: 15px;
+    background: var(--primary-gradient);
+}
+#createQueryCurrentTaskFeedback {
+    margin-top: 15px;
+    padding: 12px; /* Увеличил padding */
+    border-radius: var(--border-radius-medium);
+    font-weight: 500;
+    min-height: 24px; /* Чуть больше */
+    text-align: center;
+    line-height: 1.4;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+.feedback-success {
+    background-color: rgba(131, 197, 190, 0.15); /* Чуть менее прозрачный */
+    color: var(--primary-hover-color); /* Более насыщенный цвет */
+    border: 1px solid var(--primary-hover-color);
+}
+.feedback-error {
+    background-color: rgba(250, 128, 114, 0.15);
+    color: var(--danger-hover-color);
+    border: 1px solid var(--danger-hover-color);
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 5px 0;
+}
+.input-group label {
+    font-size: 0.9em;
+    color: var(--light-text-color);
+}
+.input-group input[type="text"], .input-group select {
+    padding: 8px;
+    border-radius: var(--border-radius-small);
+    border: 1px solid var(--border-color);
+    background-color: #3B4049;
+    color: var(--text-color);
+    font-size: 0.9em;
+}
