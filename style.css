@@ -32,34 +32,33 @@
     --energy-color: #F8D568; /* Soft Amber */
 
     --font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-    --font-size-base: 0.95em; /* Базовый размер шрифта для читаемости */
-    --font-size-small: 0.85em; /* Для описаний и мелких деталей */
-    --font-size-large: 1.1em; /* Для важных элементов, вроде ресурсов */
+    --font-size-base: 0.9em; /* Чуть меньше базовый размер */
+    --font-size-small: 0.8em; /* Для описаний и мелких деталей, еще меньше */
+    --font-size-large: 1.0em; /* Для важных элементов, вроде ресурсов, чуть меньше */
 }
 
-/* Global Styles */
-html, body {
-    height: 100%; /* Ensure html and body take full height */
+/* Общий сброс для всех элементов */
+* {
+    box-sizing: border-box; /* Всегда учитываем padding и border в ширине/высоте */
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevent body scroll, game-container will scroll */
 }
 
 body {
     font-family: var(--font-family);
-    background-color: var(--background-color); /* Use solid color for body background */
+    background-color: var(--background-color);
     color: var(--text-color);
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center vertically */
-    align-items: center; /* Center horizontally */
-    min-height: 100vh; /* Ensure it takes at least full viewport height */
-    box-sizing: border-box;
-    line-height: 1.6;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    font-size: var(--font-size-base); /* Применяем базовый размер шрифта */
+    line-height: 1.5; /* Улучшенная читаемость */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    padding: 20px; /* Padding around the game container for smaller screens */
-    font-size: var(--font-size-base); /* Применяем базовый размер шрифта */
+    overflow-y: auto; /* Allow scrolling on body if content truly overflows everything */
 }
 
 .game-container {
@@ -69,14 +68,13 @@ body {
     border-radius: var(--border-radius-large);
     box-shadow: var(--shadow-medium);
     padding: 30px;
-    box-sizing: border-box;
     position: relative;
-    display: flex; /* Use flex to stack content */
+    display: flex;
     flex-direction: column;
-    overflow-y: auto; /* Enable scrolling within the game container if content overflows */
-    max-height: calc(100vh - 40px); /* Adjust max-height to account for body padding */
-    margin: auto; /* Center with margin auto for full height in flex container */
-    animation: fadeIn 0.5s ease-out; /* Subtle fade in */
+    overflow-y: auto; /* Enable scrolling within the game container */
+    max-height: calc(100vh - 40px); /* Account for body padding */
+    margin: auto;
+    animation: fadeIn 0.5s ease-out;
 }
 
 /* Animations */
@@ -100,7 +98,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    font-size: var(--font-size-small); /* Уменьшаем размер текста */
+    font-size: var(--font-size-small);
     color: var(--light-text-color);
 }
 
@@ -122,11 +120,11 @@ body {
 
 .header-info span .emoji {
     margin-right: 4px;
-    font-size: 1.1em; /* Эмодзи сохраняют размер */
+    font-size: 1.1em;
 }
 
 .progress-bar-container {
-    background-color: #555A67; /* Darker background for progress bar */
+    background-color: #555A67;
     border-radius: 5px;
     height: 8px;
     margin-top: 6px;
@@ -145,12 +143,12 @@ body {
 /* Game Message */
 .message {
     margin-bottom: 25px;
-    font-size: var(--font-size-large); /* Сохраняем читаемость сообщений */
+    font-size: var(--font-size-large);
     font-weight: 600;
     color: var(--primary-color);
     min-height: 36px;
-    animation: none;
-    text-align: center; /* Center the message */
+    text-align: center;
+    line-height: 1.3; /* Для лучшей читаемости одной строки */
 }
 
 /* Buttons Container */
@@ -163,7 +161,7 @@ body {
 
 button {
     padding: 12px 18px;
-    font-size: var(--font-size-base); /* Базовый размер для кнопок */
+    font-size: var(--font-size-base);
     cursor: pointer;
     border: none;
     border-radius: var(--border-radius-medium);
@@ -176,6 +174,9 @@ button {
     position: relative;
     overflow: hidden;
     text-align: center;
+    /* Убедимся, что фон градиента не исчезает на hover/active */
+    background-size: 100% 100%;
+    background-position: center;
 }
 
 button::before {
@@ -205,12 +206,12 @@ button:active {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 button:disabled {
-    background: #555A67; /* Darker disabled background */
-    box-shadow: none;
-    transform: none;
-    cursor: not-allowed;
-    opacity: 0.6;
-    color: #929292; /* Lighter grey for disabled text */
+    background: #555A67 !important; /* !important для уверенности */
+    box-shadow: none !important;
+    transform: none !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+    color: #929292 !important;
 }
 
 /* Specific Button Styles */
@@ -218,7 +219,7 @@ button:disabled {
     background: var(--secondary-gradient);
 }
 .secondary-button:hover {
-    background: var(--secondary-gradient); /* Keep gradient on hover */
+    background: var(--secondary-gradient);
 }
 
 .danger-button {
@@ -263,9 +264,12 @@ button:disabled {
 /* List Item Styles (for Collection, Shop, Market, Boosters) */
 .list-grid {
     display: grid;
-    /* Устанавливаем 3 столбца */
+    /* Устанавливаем 3 столбца явно, без auto-fill */
     grid-template-columns: repeat(3, 1fr);
     gap: 15px; /* Увеличиваем отступы между элементами */
+    /* Дополнительные свойства для выравнивания элементов в сетке */
+    align-items: start; /* Выравнивает элементы по верхнему краю ячейки */
+    justify-content: center; /* Центрирует элементы в ячейке */
 }
 
 .list-item {
@@ -302,6 +306,7 @@ button:disabled {
     display: flex;
     align-items: center;
     margin-bottom: 6px; /* Отступ после названия */
+    line-height: 1.2; /* Улучшаем интерлиньяж для заголовка */
 }
 .list-item-name .emoji {
     margin-right: 8px; /* Увеличиваем отступ эмодзи */
@@ -319,7 +324,7 @@ button:disabled {
     font-size: var(--font-size-small); /* Размер текста кнопки */
     border-radius: var(--border-radius-small);
     width: 100%;
-    box-shadow: none; /* No shadow for inner buttons */
+    box-shadow: none;
     text-transform: none;
     font-weight: 600;
     background: var(--primary-gradient);
@@ -347,7 +352,7 @@ button:disabled {
 
 #achievementsPanel h3 { color: #F8D568; border-color: #F8D568; } /* Amber */
 .achievement-item {
-    background-color: #4C525E; /* Darker background for achievement item */
+    background-color: #4C525E;
     border: 1px solid #5A6270;
     padding: 12px;
     margin-bottom: 8px;
@@ -355,11 +360,11 @@ button:disabled {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: var(--font-size-small); /* Уменьшаем текст */
+    font-size: var(--font-size-small);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 .achievement-item.completed {
-    background-color: #4A635E; /* Darker green for completed achievements */
+    background-color: #4A635E;
     border-color: #61A8A3;
     color: var(--primary-color);
 }
@@ -381,7 +386,7 @@ button:disabled {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .project-item.completed {
-    background-color: #4A635E; /* Darker green for completed projects */
+    background-color: #4A635E;
     border-color: #61A8A3;
 }
 .project-item strong {
@@ -397,7 +402,7 @@ button:disabled {
     color: var(--light-text-color);
     display: flex;
     align-items: center;
-    font-size: var(--font-size-small); /* Уменьшаем текст */
+    font-size: var(--font-size-small);
 }
 .project-item li .emoji {
     margin-right: 4px;
@@ -428,9 +433,9 @@ button:disabled {
 .booster-item button {
     background: linear-gradient(45deg, #A08CDD 0%, #B8A8E8 100%);
     box-shadow: none;
-    font-size: var(--font-size-small); /* Уменьшаем текст */
+    font-size: var(--font-size-small);
     padding: 8px 15px;
-    color: #3B4049; /* Dark text on light button */
+    color: #3B4049;
 }
 .booster-item button:hover {
     background: linear-gradient(45deg, #8B7AC2 0%, #A08CDD 100%);
@@ -439,8 +444,8 @@ button:disabled {
 #historyPanel h3 { color: #6CCECB; border-color: #6CCECB; } /* Teal */
 .history-entry {
     padding: 8px 0;
-    border-bottom: 1px dotted #4B5263; /* Darker dotted border */
-    font-size: var(--font-size-small); /* Уменьшаем текст */
+    border-bottom: 1px dotted #4B5263;
+    font-size: var(--font-size-small);
     color: var(--light-text-color);
     text-align: left;
 }
@@ -448,16 +453,16 @@ button:disabled {
 
 .version-info {
     font-size: 0.75em;
-    color: #5A6270; /* Muted dark grey for version */
+    color: #5A6270;
     margin-top: 20px;
-    padding-bottom: 10px; /* Ensure it's not cut off at very bottom */
+    padding-bottom: 10px;
     text-align: center;
     width: 100%;
 }
 
 /* Modal for detailed info */
 .modal {
-    display: none; /* Control visibility via JS */
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -465,11 +470,12 @@ button:disabled {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.7); /* Darker overlay */
+    background-color: rgba(0,0,0,0.7);
     backdrop-filter: blur(5px);
     animation: fadeInModal 0.2s ease-out forwards;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
+    display: flex; /* Ensure it's flex so justify/align work */
+    justify-content: center;
+    align-items: center;
 }
 .modal-content {
     background-color: var(--card-background);
@@ -483,7 +489,7 @@ button:disabled {
     animation: slideInModal 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
     text-align: left;
     border: 1px solid var(--border-color);
-    color: var(--text-color); /* Ensure modal text is readable */
+    color: var(--text-color);
 }
 @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideInModal {
@@ -492,7 +498,7 @@ button:disabled {
 }
 
 .close-button {
-    color: #ABB2BF; /* Lighter grey for close button */
+    color: #ABB2BF;
     font-size: 28px;
     font-weight: bold;
     position: absolute;
@@ -516,14 +522,14 @@ button:disabled {
 }
 .modal-content p {
     margin-bottom: 10px;
-    font-size: var(--font-size-base); /* Базовый размер для параграфов */
+    font-size: var(--font-size-base);
 }
 .modal-content strong {
     color: var(--text-color);
     font-weight: 600;
 }
 .modal-content pre {
-    background-color: #2F333A; /* Darker background for code */
+    background-color: #2F333A;
     border: 1px solid #4B5263;
     border-radius: var(--border-radius-small);
     padding: 12px;
@@ -531,11 +537,11 @@ button:disabled {
     white-space: pre-wrap;
     word-break: break-all;
     font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
-    font-size: var(--font-size-small); /* Уменьшаем размер текста в преформатированном блоке */
+    font-size: var(--font-size-small);
     line-height: 1.5;
     box-shadow: var(--inner-shadow);
     margin-top: 12px;
-    color: #E6E6E6; /* Light color for code */
+    color: #E6E6E6;
 }
 .modal-content .modal-buttons {
     display: flex;
@@ -546,7 +552,7 @@ button:disabled {
     margin-left: 8px;
     box-shadow: none;
     padding: 8px 15px;
-    font-size: var(--font-size-base); /* Размер кнопок в модальном окне */
+    font-size: var(--font-size-base);
 }
 
 
@@ -565,7 +571,7 @@ button:disabled {
     .game-container {
         padding: 20px;
         border-radius: var(--border-radius-medium);
-        max-height: calc(100vh - 30px); /* Adjust max-height for smaller padding */
+        max-height: calc(100vh - 30px);
     }
     .header-info {
         flex-direction: column;
@@ -580,7 +586,7 @@ button:disabled {
         margin-top: 5px;
     }
     .buttons-container {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* 2 columns on small phones */
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 10px;
     }
     button {
@@ -625,9 +631,9 @@ button:disabled {
 
 @media (max-width: 400px) {
     .buttons-container {
-        grid-template-columns: 1fr; /* Stack buttons on very small screens */
+        grid-template-columns: 1fr;
     }
     .list-item-main {
         margin-bottom: 5px;
     }
-}
+                          }
