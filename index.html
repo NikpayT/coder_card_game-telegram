@@ -25,7 +25,7 @@
         <p class="message" id="gameMessage">Добро пожаловать в игру "Сборщик SQL-функций"! 🚀</p>
 
         <div class="buttons-container" id="mainButtons">
-            <button id="collectButton">Найти SQL-функцию 🔍 (1 ⚡️)</button>
+            <button id="collectButton">Изучить SQL-функцию 🎓 (1 ⚡️)</button>
             <button id="viewCollectionButton" class="secondary-button">Моя коллекция 🎒</button>
             <button id="shopButton" class="secondary-button">Магазин 💰</button>
             <button id="dailyBonusButton" class="secondary-button">Ежедневный бонус 🎁</button>
@@ -87,8 +87,8 @@
 
         <div id="statsPanel" class="panel" style="display: none;">
             <h3>Статистика 📈</h3>
-            <p>Уникальных функций найдено: <strong id="statsUniqueCount">0</strong></p>
-            <p>Всего функций (включая дубликаты): <strong id="statsTotalCount">0</strong></p>
+            <p>Уникальных функций изучено: <strong id="statsUniqueCount">0</strong></p>
+            <p>Всего функций изучено (включая дубликаты): <strong id="statsTotalCount">0</strong></p>
             <p>Опыта заработано: <strong id="statsExperienceEarned">0</strong></p>
             <p>Функций продано: <strong id="statsPartsSold">0</strong></p>
             <p>Функций куплено: <strong id="statsPartsBought">0</strong></p>
@@ -126,7 +126,7 @@
 
     <div id="partDetailModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" id="closePartDetailModal">&times;</span>
+            <span class="close-button" id="closePartDetailModal">×</span>
             <h4 id="modalPartName">Название функции</h4>
             <p><strong>Описание:</strong> <span id="modalPartDescription"></span></p>
             <p><strong>Тип:</strong> <span id="modalPartType"></span></p>
@@ -140,7 +140,7 @@
     </div>
 
     <div class="version-info">
-        Версия: <span id="gameVersion">0.6.2</span>
+        Версия: <span id="gameVersion">0.6.2</span> <!-- Версию можно будет потом обновить -->
     </div>
 
     <script src="game_data.js"></script>
@@ -196,7 +196,7 @@
         const XP_PER_LEVEL_MULTIPLIER = 1.2;
         const DAILY_BONUS_AMOUNT = 5;
         const DAILY_BONUS_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 часа
-        const ENERGY_CONSUMPTION_PER_FIND = 1;
+        const ENERGY_CONSUMPTION_PER_ACTION = 1; // Переименовано для общности
         const ENERGY_RECOVERY_INTERVAL_MS = 60 * 1000; // 1 минута
 
         // Типы редкости (для рынка и бустеров)
@@ -210,7 +210,7 @@
 
         // Бустеры
         const BOOSTERS = [
-            { id: 'xp_boost', name: 'Бустер опыта (x2)', description: 'Удвоенный опыт за находки на 5 минут.', cost: 5, duration: 5 * 60 * 1000, effect: { type: 'xp_multiplier', value: 2 } },
+            { id: 'xp_boost', name: 'Бустер опыта (x2)', description: 'Удвоенный опыт за изучение на 5 минут.', cost: 5, duration: 5 * 60 * 1000, effect: { type: 'xp_multiplier', value: 2 } },
             { id: 'energy_boost', name: 'Бустер энергии', description: 'Мгновенное восстановление 5 энергии.', cost: 3, effect: { type: 'energy_refill', value: 5 } },
             { id: 'find_chance_boost', name: 'Бустер удачи (+10% редких)', description: 'Повышает шанс найти редкие функции на 10% на 5 минут.', cost: 7, duration: 5 * 60 * 1000, effect: { type: 'rare_chance', value: 0.1 } }
         ];
@@ -308,7 +308,6 @@
         // --- Управление UI и состояниями ---
         function updateUI() {
             // Общие элементы
-            // Используем textContent для основного текста и добавляем эмодзи отдельно
             gameMessageElement.textContent = gameData.message;
             experienceDisplay.textContent = `🌟 Опыт: ${gameData.experience}`;
             levelDisplay.textContent = `⬆️ Уровень: ${gameData.level} (${gameData.currentXp}/${gameData.xpToNextLevel} XP)`;
@@ -316,19 +315,17 @@
             levelProgressBar.style.width = `${progressPercentage}%`;
 
             // Энергия
-            updateEnergy(); // Обновляем энергию перед отображением
+            updateEnergy(); 
             energyDisplay.textContent = `⚡️ Энергия: ${gameData.energy}/${gameData.maxEnergy}`;
 
-            // Скрываем все панели
             const allPanels = [
                 mainButtonsContainer, collectionDisplay, createPanel, shopPanel,
                 dailyBonusPanel, achievementsPanel, statsPanel, projectPanel,
                 boostersPanel, historyPanel, marketPanel
             ];
             allPanels.forEach(panel => panel.style.display = 'none');
-            resetGameButton.style.display = 'block'; // Кнопка сброса всегда видна
+            resetGameButton.style.display = 'block'; 
 
-            // Показываем нужную панель в зависимости от текущего вида
             switch (gameData.currentView) {
                 case 'main':
                     mainButtonsContainer.style.display = 'grid';
@@ -340,7 +337,6 @@
                     break;
                 case 'create':
                     createPanel.style.display = 'block';
-                    // renderCreatePanel(); // Пока заглушка
                     break;
                 case 'shop':
                     shopPanel.style.display = 'block';
@@ -375,9 +371,7 @@
                     renderHistory();
                     break;
             }
-
-            // Кнопка поиска
-            collectButton.disabled = gameData.energy < ENERGY_CONSUMPTION_PER_FIND;
+            collectButton.disabled = gameData.energy < ENERGY_CONSUMPTION_PER_ACTION;
         }
 
         // --- Рендеринг панелей ---
@@ -405,7 +399,7 @@
                     div.querySelector('.list-item-main').onclick = () => showPartDetails(item.id, 'collection');
                     const sellBtn = div.querySelector('.sell-button');
                     sellBtn.onclick = (event) => {
-                         event.stopPropagation(); // Prevent modal from opening
+                         event.stopPropagation(); 
                          sellPart(item.id);
                     };
                     collectionList.appendChild(div);
@@ -418,32 +412,29 @@
             const collectedPart = gameData.collection.find(item => item.id === partId);
 
             if (part) {
-                modalPartName.textContent = `${part.emoji || '❓'} ${part.name}`; // Use textContent for name
+                modalPartName.textContent = `${part.emoji || '❓'} ${part.name}`;
                 modalPartDescription.textContent = part.description || 'Нет описания.';
                 modalPartType.textContent = part.type || 'Неизвестно';
                 modalPartExample.textContent = part.example || 'Пример недоступен.';
                 modalPartCount.textContent = collectedPart ? collectedPart.count : 0;
 
-                // Set up sell button listener directly without cloning
-                modalSellButton.onclick = null; // Clear previous listener
+                modalSellButton.onclick = null; 
                 if (sourcePanel === 'collection' && collectedPart && collectedPart.count > 0) {
                     modalSellButton.style.display = 'block';
                     modalSellButton.onclick = () => {
                         sellPart(part.id);
-                        // After selling, check if count is 0, if so, close modal or update count
                         const updatedCollectedPart = gameData.collection.find(item => item.id === part.id);
                         if (!updatedCollectedPart || updatedCollectedPart.count === 0) {
-                            partDetailModal.style.display = 'none'; // Close modal if last one sold
+                            partDetailModal.style.display = 'none'; 
                         } else {
-                            modalPartCount.textContent = updatedCollectedPart.count; // Update count in modal
+                            modalPartCount.textContent = updatedCollectedPart.count; 
                         }
-                        updateUI(); // Refresh UI for collection list
+                        updateUI(); 
                     };
                 } else {
                     modalSellButton.style.display = 'none';
                 }
-
-                partDetailModal.style.display = 'flex'; // Use flex to center
+                partDetailModal.style.display = 'flex'; 
             } else {
                 gameData.message = "Ошибка: Детали функции не найдены.";
                 updateUI();
@@ -463,7 +454,6 @@
 
         function renderShopItems() {
             const buyableParts = ALL_CODE_PARTS.filter(part => {
-                // Только те, которых нет в коллекции совсем
                 return !gameData.collection.some(item => item.id === part.id);
             });
 
@@ -498,7 +488,7 @@
         function renderMarketItems() {
             const rareParts = ALL_CODE_PARTS.filter(part =>
                 part.rarity && part.rarity !== 'common' &&
-                !gameData.collection.some(item => item.id === part.id) // Only show if not already collected
+                !gameData.collection.some(item => item.id === part.id) 
             );
 
             if (rareParts.length === 0) {
@@ -512,7 +502,7 @@
                     const marketPrice = rarityInfo.price;
 
                     const div = document.createElement('div');
-                    div.className = 'list-item market-item'; // Add market-item class for specific styling
+                    div.className = 'list-item market-item'; 
                     div.innerHTML = `
                         <div class="list-item-main">
                             <span class="list-item-name">${item.emoji || '❓'} ${item.name}</span>
@@ -539,7 +529,7 @@
                 if (a.completed === b.completed) {
                     return a.name.localeCompare(b.name);
                 }
-                return a.completed ? 1 : -1; // Completed go to the end
+                return a.completed ? 1 : -1; 
             });
 
             sortedAchievements.forEach(ach => {
@@ -551,7 +541,7 @@
                         <strong>${ach.name || 'Название достижения'}</strong><br>
                         <span>${ach.description || 'Описание отсутствует.'}</span>
                     </div>
-                    ${isCompleted ? '<span>&#10003; Получено!</span>' : ''}
+                    ${isCompleted ? '<span>✓ Получено!</span>' : ''}
                 `;
                 achievementsList.appendChild(div);
             });
@@ -574,10 +564,9 @@
             const incompleteProjects = gameData.projects.filter(p => !p.completed);
             const completedProjects = gameData.projects.filter(p => p.completed);
 
-            // Sort incomplete projects by reward_xp or some other metric
             incompleteProjects.sort((a, b) => a.reward_xp - b.reward_xp);
 
-            [...incompleteProjects, ...completedProjects].forEach(project => { // Incomplete first, then completed
+            [...incompleteProjects, ...completedProjects].forEach(project => { 
                 const div = document.createElement('div');
                 div.className = `project-item ${project.completed ? 'completed' : ''}`;
 
@@ -588,7 +577,7 @@
                     const hasPart = gameData.collection.some(item => item.id === reqId && item.count > 0);
                     const metClass = hasPart ? 'requirement-met' : '';
                     if (!hasPart) allRequirementsMet = false;
-                    requirementsHtml += `<li class="${metClass}">${(requiredPart && requiredPart.emoji) || '❓'} ${requiredPart ? requiredPart.name : 'Неизвестная функция'} ${hasPart ? '&#10003;' : '&#10007;'}</li>`;
+                    requirementsHtml += `<li class="${metClass}">${(requiredPart && requiredPart.emoji) || '❓'} ${requiredPart ? requiredPart.name : 'Неизвестная функция'} ${hasPart ? '✓' : '✗'}</li>`;
                 });
                 requirementsHtml += '</ul>';
 
@@ -651,7 +640,7 @@
                 historyLog.innerHTML = '<p style="text-align: center; width: 100%; color: var(--light-text-color);">Ваша история действий пуста.</p>';
             } else {
                 historyLog.innerHTML = '';
-                const recentHistory = gameData.history.slice(-20).reverse(); // Show last 20 entries
+                const recentHistory = gameData.history.slice(-20).reverse(); 
                 recentHistory.forEach(entry => {
                     const date = new Date(entry.timestamp);
                     const timeString = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -670,7 +659,6 @@
             const xpBooster = gameData.activeBoosters.find(b => b.id === 'xp_boost' && b.endsAt > Date.now());
             if (xpBooster) {
                 actualAmount *= xpBooster.effect.value;
-                // Не добавляем здесь в gameData.message, чтобы избежать дублирования
             }
 
             gameData.experience += actualAmount;
@@ -679,7 +667,6 @@
 
             checkLevelUp();
             checkAchievements();
-            // addHistoryEntry(`Получено ${actualAmount} опыта.`); // Avoid double logging if message already includes
         }
 
         function checkLevelUp() {
@@ -687,8 +674,8 @@
                 gameData.currentXp -= gameData.xpToNextLevel;
                 gameData.level++;
                 gameData.xpToNextLevel = Math.floor(XP_PER_LEVEL_BASE * Math.pow(XP_PER_LEVEL_MULTIPLIER, gameData.level - 1));
-                gameData.maxEnergy++; // При каждом новом уровне увеличиваем максимальную энергию
-                gameData.energy = gameData.maxEnergy; // Полное восстановление энергии при уровне
+                gameData.maxEnergy++; 
+                gameData.energy = gameData.maxEnergy; 
                 gameData.message = `Поздравляем! Вы достигли Уровня ${gameData.level}! 🎉 Максимальная энергия увеличена до ${gameData.maxEnergy}!`;
                 addHistoryEntry(`Уровень повышен до ${gameData.level}!`);
             }
@@ -706,7 +693,7 @@
                         case 'collect_5_unique':
                         case 'collect_10_unique':
                         case 'collect_20_unique':
-                            const requiredUnique = parseInt(achId.match(/\d+/)?.[0]); // Extract number from ID, use optional chaining
+                            const requiredUnique = parseInt(achId.match(/\d+/)?.[0]); 
                             if (uniquePartsCount >= requiredUnique) meetsCondition = true;
                             break;
                         case 'collect_all_unique':
@@ -732,7 +719,7 @@
 
                     if (meetsCondition) {
                         ach.completed = true;
-                        addExperience(ach.reward); // Achievement reward also affected by XP booster
+                        addExperience(ach.reward); 
                         gameData.message = `Достижение "${ach.name}" получено! (+${ach.reward} 🌟)`;
                         addHistoryEntry(`Получено достижение: "${ach.name}"`);
                     }
@@ -741,7 +728,6 @@
         }
 
 
-        // Логика покупки в обычном магазине
         function buyPart(partId) {
             if (gameData.experience < PART_PRICE) {
                 gameData.message = 'Недостаточно опыта для покупки! 🚫';
@@ -772,7 +758,6 @@
             updateUI();
         }
 
-        // Логика покупки на рынке редких функций
         function buyPartFromMarket(partId, price) {
             if (gameData.experience < price) {
                 gameData.message = 'Недостаточно опыта для покупки! 🚫';
@@ -803,7 +788,6 @@
             updateUI();
         }
 
-        // Логика продажи
         function sellPart(partId) {
             const existingPartIndex = gameData.collection.findIndex(item => item.id === partId);
 
@@ -834,7 +818,6 @@
 
             if (energyToRecover > 0) {
                 gameData.energy = Math.min(gameData.maxEnergy, gameData.energy + energyToRecover);
-                // Обновляем lastEnergyRecovery только на целое количество минут, чтобы остаток времени переносился
                 gameData.lastEnergyRecovery += (energyToRecover / gameData.energyRecoveryRate) * ENERGY_RECOVERY_INTERVAL_MS;
             }
         }
@@ -875,7 +858,6 @@
                 return;
             }
 
-            // Проверяем, есть ли все необходимые функции
             const allRequirementsMet = project.requirements.every(reqId =>
                 gameData.collection.some(item => item.id === reqId && item.count > 0)
             );
@@ -934,7 +916,6 @@
             updateUI();
         }
 
-        // Удаление истекших бустеров
         function cleanExpiredBoosters() {
             gameData.activeBoosters = gameData.activeBoosters.filter(b => b.endsAt > Date.now());
         }
@@ -962,46 +943,37 @@
 
         // --- Обработчики событий кнопок ---
         collectButton.addEventListener('click', () => {
-            if (gameData.energy < ENERGY_CONSUMPTION_PER_FIND) {
-                gameData.message = 'Недостаточно энергии для поиска! 😴';
+            if (gameData.energy < ENERGY_CONSUMPTION_PER_ACTION) {
+                gameData.message = 'Недостаточно энергии для изучения! 😴'; // ИЗМЕНЕНО
                 updateUI();
                 return;
             }
 
-            gameData.energy -= ENERGY_CONSUMPTION_PER_FIND;
-            addHistoryEntry(`Использовано ${ENERGY_CONSUMPTION_PER_FIND} энергии для поиска.`);
+            gameData.energy -= ENERGY_CONSUMPTION_PER_ACTION;
+            addHistoryEntry(`Использовано ${ENERGY_CONSUMPTION_PER_ACTION} энергии для изучения.`); // ИЗМЕНЕНО
 
             let foundPart = null;
             const rareChanceBooster = gameData.activeBoosters.find(b => b.id === 'find_chance_boost' && b.endsAt > Date.now());
             let currentRareChanceModifier = rareChanceBooster ? rareChanceBooster.effect.value : 0;
 
-            // Generate weighted parts list for random selection based on rarity
             const weightedParts = [];
             ALL_CODE_PARTS.forEach(part => {
                 const rarityDef = RARITIES[part.rarity] || RARITIES.common;
                 let baseChance = rarityDef.chance;
-
-                // Apply rare chance booster only to non-common parts
                 if (part.rarity && part.rarity !== 'common') {
                     baseChance = Math.min(1.0, baseChance + currentRareChanceModifier);
                 }
-
-                // Add part to weighted list based on its chance (higher chance = more entries)
-                // Multiply by a factor (e.g., 1000) to ensure enough resolution for chances
                 for (let i = 0; i < Math.round(baseChance * 1000); i++) {
                     weightedParts.push(part);
                 }
             });
 
-            // Ensure there's always something to pick, even if all chances are very low
             if (weightedParts.length === 0 && ALL_CODE_PARTS.length > 0) {
-                // Fallback: if somehow weighted list is empty, pick a random common part
                 const commonParts = ALL_CODE_PARTS.filter(p => p.rarity === 'common');
                 foundPart = commonParts.length > 0 ? commonParts[Math.floor(Math.random() * commonParts.length)] : ALL_CODE_PARTS[0];
             } else if (weightedParts.length > 0) {
                 foundPart = weightedParts[Math.floor(Math.random() * weightedParts.length)];
             } else {
-                 // Really shouldn't happen if ALL_CODE_PARTS is not empty
                  foundPart = { id: 'default_error', name: 'Неизвестная функция', emoji: '❓' };
             }
 
@@ -1011,29 +983,26 @@
             if (!existingPart) {
                 gameData.collection.push({...foundPart, count: 1});
                 addExperience(1);
-                gameData.message = `Вы нашли новую SQL-функцию! 🎉 ${foundPart.emoji || '❓'} ${foundPart.name} (+1 🌟)`;
-                addHistoryEntry(`Найдена новая функция: ${foundPart.name}`);
+                gameData.message = `Вы изучили новую SQL-функцию! 🎉 ${foundPart.emoji || '❓'} ${foundPart.name} (+1 🌟)`; // ИЗМЕНЕНО
+                addHistoryEntry(`Изучена новая SQL-функция: ${foundPart.name}`); // ИЗМЕНЕНО
             }
             else {
                 existingPart.count++;
                 addExperience(1);
-                gameData.message = `Вы нашли ${foundPart.emoji || '❓'} ${foundPart.name} (уже есть)! Теперь у вас их ${existingPart.count}. (+1 🌟)`;
-                addHistoryEntry(`Найдена дубликат функции: ${foundPart.name} (x${existingPart.count})`);
+                gameData.message = `Вы изучили ${foundPart.emoji || '❓'} ${foundPart.name} (уже изучена)! Теперь у вас их ${existingPart.count}. (+1 🌟)`; // ИЗМЕНЕНО
+                addHistoryEntry(`Повторно изучена функция: ${foundPart.name} (x${existingPart.count})`); // ИЗМЕНЕНО
             }
             updateUI();
         });
 
 
-        // Централизованная функция для переключения вида
         function setGameView(view) {
             gameData.currentView = view;
             updateUI();
         }
 
-        // Привязка обработчиков к кнопкам
-        // Убедитесь, что кнопки привязаны один раз, чтобы избежать дублирования слушателей
         const setupEventListeners = () => {
-            collectButton.addEventListener('click', () => setGameView('main'));
+            // collectButton.addEventListener('click', () => setGameView('main')); // Уже есть выше с другой логикой
             viewCollectionButton.addEventListener('click', () => setGameView('collection'));
             createButton.addEventListener('click', () => setGameView('create'));
             shopButton.addEventListener('click', () => setGameView('shop'));
@@ -1061,7 +1030,6 @@
             resetGameButton.addEventListener('click', () => {
                 if (confirm('Вы уверены, что хотите начать игру заново? Все данные будут удалены!')) {
                     localStorage.removeItem('coderGameData');
-                    // Reset gameData to initial state directly
                     gameData = {
                         message: "Игра начата заново! Добро пожаловать! 🚀",
                         collection: [],
@@ -1079,7 +1047,7 @@
                         lastEnergyRecovery: Date.now(),
                         activeBoosters: [],
                         history: [],
-                        achievements: { // Re-initialize achievements
+                        achievements: { 
                             collect_5_unique: { completed: false, reward: 10, name: 'Первооткрыватель', description: 'Собрать 5 уникальных SQL-функций' },
                             collect_10_unique: { completed: false, reward: 20, name: 'Юный Базист', description: 'Собрать 10 уникальных SQL-функций' },
                             collect_20_unique: { completed: false, reward: 40, name: 'Мастер Запросов', description: 'Собрать 20 уникальных SQL-функций' },
@@ -1091,7 +1059,7 @@
                             complete_1_project: { completed: false, reward: 25, name: 'Первый Проект', description: 'Завершить 1 проект' },
                             complete_3_projects: { completed: false, reward: 50, name: 'Архитектор Баз Данных', description: 'Завершить 3 проекта' },
                         },
-                        projects: [ // Re-initialize projects
+                        projects: [ 
                             { id: 'proj_basic_select', name: 'Базовая выборка данных', description: 'Извлечь все данные из таблицы Customers.', requirements: ['sql_select', 'sql_from'], completed: false, reward_xp: 20 },
                             { id: 'proj_filtered_select', name: 'Выборка с фильтром', description: 'Найти продукты дороже 50.', requirements: ['sql_select', 'sql_from', 'sql_where'], completed: false, reward_xp: 35 },
                             { id: 'proj_insert_data', name: 'Вставка новой записи', description: 'Добавить нового пользователя в таблицу.', requirements: ['sql_insert_into', 'sql_values'], completed: false, reward_xp: 25 },
@@ -1100,14 +1068,12 @@
                             { id: 'proj_table_join', name: 'Объединение таблиц', description: 'Соединить данные из Customers и Orders.', requirements: ['sql_select', 'sql_from', 'sql_join'], completed: false, reward_xp: 50 },
                             { id: 'proj_create_simple_table', name: 'Создание простой таблицы', description: 'Создать таблицу с ID и именем.', requirements: ['sql_create_table', 'sql_int', 'sql_varchar'], completed: false, reward_xp: 40 },
                             { id: 'proj_count_records', name: 'Подсчет записей', description: 'Посчитать количество записей в таблице.', requirements: ['sql_select', 'sql_count', 'sql_from'], completed: false, reward_xp: 20 },
-                            { id: 'proj_aggregate_data', name: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
+                            { id: 'proj_aggregate_data', name: 'Агрегация данных', description: 'Вычислить среднюю цену продуктов, сгруппированных по категории.', requirements: ['sql_select', 'sql_avg', 'sql_group_by'], completed: false, reward_xp: 45 }
                         ],
                         currentView: 'main'
                     };
                     updateUI();
-                    // For Telegram WebApp, consider forcing a full reload or even closing to ensure state reset
                     if (window.Telegram && window.Telegram.WebApp) {
-                        // Telegram.WebApp.close(); // Or simply reload
                         window.location.reload();
                     } else {
                         location.reload();
@@ -1119,7 +1085,6 @@
         // --- Сохранение/Загрузка игры ---
         function saveGameData() {
             localStorage.setItem('coderGameData', JSON.stringify(gameData));
-            // console.log('Game data saved!');
         }
 
         function loadGameData() {
@@ -1127,7 +1092,6 @@
             if (savedData) {
                 const loadedGameData = JSON.parse(savedData);
 
-                // Load basic game properties, providing defaults for new fields (e.g., totalXpEarned, history)
                 gameData.experience = loadedGameData.experience ?? 0;
                 gameData.level = loadedGameData.level ?? 1;
                 gameData.xpToNextLevel = loadedGameData.xpToNextLevel ?? 100;
@@ -1144,62 +1108,51 @@
                 gameData.message = loadedGameData.message ?? "Добро пожаловать обратно!";
 
 
-                // Load and clean active boosters
                 gameData.activeBoosters = (loadedGameData.activeBoosters || []).filter(b => b.endsAt > Date.now());
-
-                // Load history
                 gameData.history = loadedGameData.history || [];
 
-                // Load achievements: only copy the 'completed' status, keep current definitions
                 for (const achId in gameData.achievements) {
                     if (loadedGameData.achievements && loadedGameData.achievements[achId]) {
                         gameData.achievements[achId].completed = loadedGameData.achievements[achId].completed;
                     }
                 }
 
-                // Load projects: similar to achievements, update 'completed' status, keep current definitions
                 const loadedProjectsMap = new Map((loadedGameData.projects || []).map(p => [p.id, p]));
                 gameData.projects = gameData.projects.map(defaultProj => {
                     if (loadedProjectsMap.has(defaultProj.id)) {
                         return { ...defaultProj, completed: loadedProjectsMap.get(defaultProj.id).completed };
                     }
-                    return defaultProj; // New project, not found in save, stays as is (uncompleted)
+                    return defaultProj; 
                 });
 
-                // Load collection: ensure parts exist in ALL_CODE_PARTS and have a count property
                 gameData.collection = (loadedGameData.collection || []).map(item => {
                     const fullItem = ALL_CODE_PARTS.find(part => part.id === item.id);
                     return fullItem ? { ...fullItem, count: item.count || 1 } : null;
-                }).filter(Boolean); // Filter out null values if old IDs are not found
+                }).filter(Boolean); 
             }
         }
 
-
-        // --- Инициализация при старте ---
         document.addEventListener('DOMContentLoaded', () => {
-            setupEventListeners(); // Setup listeners once on DOMContentLoaded
+            setupEventListeners(); 
             loadGameData();
-            updateEnergy(); // Check energy immediately after loading
-            cleanExpiredBoosters(); // Clean expired boosters
-            updateUI(); // Update UI after loading data
+            updateEnergy(); 
+            cleanExpiredBoosters(); 
+            updateUI(); 
 
-            // Set initial message only if it was not changed during loading
             if (gameData.currentView === 'main' && gameData.message === "Добро пожаловать в игру!") {
                  gameMessageElement.textContent = `Добро пожаловать обратно! У вас ${gameData.experience} 🌟`;
             }
         });
 
-
-        // Auto-save every 5 seconds
         setInterval(saveGameData, 5000);
-
-        // Update energy and boosters every second for smooth timer display
         setInterval(() => {
             updateEnergy();
             cleanExpiredBoosters();
-            // Only update UI if we are on a relevant panel that shows time
-            if (gameData.currentView === 'daily_bonus' || gameData.currentView === 'boosters') {
+            if (gameData.currentView === 'daily_bonus' || gameData.currentView === 'boosters' || gameData.currentView === 'main') { // Обновляем UI и для main из-за таймера энергии
                  updateUI();
+            } else { // Обновляем только энергию в хедере, если не на этих экранах
+                energyDisplay.textContent = `⚡️ Энергия: ${gameData.energy}/${gameData.maxEnergy}`;
+                collectButton.disabled = gameData.energy < ENERGY_CONSUMPTION_PER_ACTION;
             }
         }, 1000);
     </script>
