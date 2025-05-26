@@ -32,6 +32,9 @@
     --energy-color: #F8D568; /* Soft Amber */
 
     --font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    --font-size-base: 0.95em; /* Базовый размер шрифта для читаемости */
+    --font-size-small: 0.85em; /* Для описаний и мелких деталей */
+    --font-size-large: 1.1em; /* Для важных элементов, вроде ресурсов */
 }
 
 /* Global Styles */
@@ -56,6 +59,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     padding: 20px; /* Padding around the game container for smaller screens */
+    font-size: var(--font-size-base); /* Применяем базовый размер шрифта */
 }
 
 .game-container {
@@ -96,7 +100,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    font-size: 0.9em;
+    font-size: var(--font-size-small); /* Уменьшаем размер текста */
     color: var(--light-text-color);
 }
 
@@ -112,13 +116,13 @@ body {
     align-items: center;
 }
 
-.header-info #experienceDisplay { color: var(--primary-color); font-size: 1.1em; }
-.header-info #levelDisplay { color: var(--text-color); font-size: 1em; }
-.header-info #energyDisplay { color: var(--energy-color); font-size: 1.1em; }
+.header-info #experienceDisplay { color: var(--primary-color); font-size: var(--font-size-large); }
+.header-info #levelDisplay { color: var(--text-color); font-size: var(--font-size-base); }
+.header-info #energyDisplay { color: var(--energy-color); font-size: var(--font-size-large); }
 
 .header-info span .emoji {
     margin-right: 4px;
-    font-size: 1.1em;
+    font-size: 1.1em; /* Эмодзи сохраняют размер */
 }
 
 .progress-bar-container {
@@ -141,7 +145,7 @@ body {
 /* Game Message */
 .message {
     margin-bottom: 25px;
-    font-size: 1.2em;
+    font-size: var(--font-size-large); /* Сохраняем читаемость сообщений */
     font-weight: 600;
     color: var(--primary-color);
     min-height: 36px;
@@ -159,7 +163,7 @@ body {
 
 button {
     padding: 12px 18px;
-    font-size: 1em;
+    font-size: var(--font-size-base); /* Базовый размер для кнопок */
     cursor: pointer;
     border: none;
     border-radius: var(--border-radius-medium);
@@ -259,64 +263,67 @@ button:disabled {
 /* List Item Styles (for Collection, Shop, Market, Boosters) */
 .list-grid {
     display: grid;
-    /* This is the key: set a minimum width for columns, allow max 1fr */
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
+    /* Устанавливаем 3 столбца */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px; /* Увеличиваем отступы между элементами */
 }
 
 .list-item {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    padding: 12px;
+    padding: 15px; /* Увеличиваем внутренние отступы */
     background-color: #444955; /* Slightly lighter card background */
-    border-radius: var(--border-radius-small);
+    border-radius: var(--border-radius-medium); /* Делаем чуть более квадратными */
     border: 1px solid var(--border-color);
     text-align: left;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: var(--font-size-small); /* Уменьшаем основной текст элемента списка */
+    height: 100%; /* Гарантируем одинаковую высоту в сетке */
+    box-sizing: border-box; /* Учитываем padding и border в размере */
 }
 .list-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px); /* Чуть больше подъем */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Чуть больше тень */
     background-color: #4C525E; /* Slightly lighter on hover */
 }
 
 .list-item-main {
     flex-grow: 1;
-    margin-bottom: 8px;
+    margin-bottom: 10px; /* Увеличиваем отступ перед кнопкой */
     width: 100%;
 }
 .list-item-name {
     font-weight: 700;
-    font-size: 1em;
+    font-size: var(--font-size-base); /* Название элемента сохраняет читаемость */
     color: var(--text-color);
     display: flex;
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: 6px; /* Отступ после названия */
 }
 .list-item-name .emoji {
-    margin-right: 6px;
-    font-size: 1.1em;
+    margin-right: 8px; /* Увеличиваем отступ эмодзи */
+    font-size: 1.2em; /* Эмодзи чуть крупнее для акцента */
 }
 .list-item-description {
-    font-size: 0.85em;
+    font-size: var(--font-size-small); /* Описание чуть меньше */
     color: var(--light-text-color);
+    line-height: 1.4; /* Улучшаем интерлиньяж для читаемости */
 }
 
 
 .item-action-button {
-    padding: 8px 12px;
-    font-size: 0.85em;
+    padding: 10px 12px; /* Увеличиваем padding кнопки */
+    font-size: var(--font-size-small); /* Размер текста кнопки */
     border-radius: var(--border-radius-small);
     width: 100%;
     box-shadow: none; /* No shadow for inner buttons */
     text-transform: none;
     font-weight: 600;
     background: var(--primary-gradient);
-    margin-top: auto;
+    margin-top: auto; /* Прижимает кнопку к низу элемента */
 }
 .item-action-button:hover {
     transform: translateY(-1px);
@@ -348,7 +355,7 @@ button:disabled {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.9em;
+    font-size: var(--font-size-small); /* Уменьшаем текст */
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 .achievement-item.completed {
@@ -361,7 +368,7 @@ button:disabled {
 }
 
 #statsPanel h3 { color: #9DA6B2; border-color: #9DA6B2; } /* Lighter Grey */
-#statsPanel p { margin: 6px 0; font-size: 0.95em; color: var(--light-text-color); }
+#statsPanel p { margin: 6px 0; font-size: var(--font-size-small); color: var(--light-text-color); }
 #statsPanel strong { color: var(--text-color); font-weight: 600; }
 
 #projectPanel h3 { color: #9DA6B2; border-color: #9DA6B2; }
@@ -390,7 +397,7 @@ button:disabled {
     color: var(--light-text-color);
     display: flex;
     align-items: center;
-    font-size: 0.95em;
+    font-size: var(--font-size-small); /* Уменьшаем текст */
 }
 .project-item li .emoji {
     margin-right: 4px;
@@ -421,7 +428,7 @@ button:disabled {
 .booster-item button {
     background: linear-gradient(45deg, #A08CDD 0%, #B8A8E8 100%);
     box-shadow: none;
-    font-size: 0.9em;
+    font-size: var(--font-size-small); /* Уменьшаем текст */
     padding: 8px 15px;
     color: #3B4049; /* Dark text on light button */
 }
@@ -433,7 +440,7 @@ button:disabled {
 .history-entry {
     padding: 8px 0;
     border-bottom: 1px dotted #4B5263; /* Darker dotted border */
-    font-size: 0.88em;
+    font-size: var(--font-size-small); /* Уменьшаем текст */
     color: var(--light-text-color);
     text-align: left;
 }
@@ -450,7 +457,6 @@ button:disabled {
 
 /* Modal for detailed info */
 .modal {
-    /* REMOVED: display: flex; */
     display: none; /* Control visibility via JS */
     position: fixed;
     z-index: 1000;
@@ -510,7 +516,7 @@ button:disabled {
 }
 .modal-content p {
     margin-bottom: 10px;
-    font-size: 0.95em;
+    font-size: var(--font-size-base); /* Базовый размер для параграфов */
 }
 .modal-content strong {
     color: var(--text-color);
@@ -525,7 +531,7 @@ button:disabled {
     white-space: pre-wrap;
     word-break: break-all;
     font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
-    font-size: 0.9em;
+    font-size: var(--font-size-small); /* Уменьшаем размер текста в преформатированном блоке */
     line-height: 1.5;
     box-shadow: var(--inner-shadow);
     margin-top: 12px;
@@ -540,14 +546,15 @@ button:disabled {
     margin-left: 8px;
     box-shadow: none;
     padding: 8px 15px;
-    font-size: 0.9em;
+    font-size: var(--font-size-base); /* Размер кнопок в модальном окне */
 }
 
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .list-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* 2-3 columns on tablets */
+        grid-template-columns: repeat(2, 1fr); /* 2 столбца на планшетах */
+        gap: 12px;
     }
 }
 
@@ -578,13 +585,13 @@ button:disabled {
     }
     button {
         padding: 10px 12px;
-        font-size: 0.95em;
+        font-size: var(--font-size-base);
     }
     .panel h3 {
         font-size: 1.4em;
     }
     .list-grid {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* 2 columns on phones */
+        grid-template-columns: 1fr; /* 1 столбец на очень маленьких экранах */
         gap: 10px;
     }
     .list-item {
@@ -592,7 +599,7 @@ button:disabled {
     }
     .item-action-button {
         padding: 6px 10px;
-        font-size: 0.8em;
+        font-size: var(--font-size-small);
     }
     .modal-content {
         padding: 18px;
@@ -609,7 +616,7 @@ button:disabled {
     }
     .modal-content pre {
         padding: 10px;
-        font-size: 0.8em;
+        font-size: var(--font-size-small);
     }
     .version-info {
         font-size: 0.7em;
@@ -619,9 +626,6 @@ button:disabled {
 @media (max-width: 400px) {
     .buttons-container {
         grid-template-columns: 1fr; /* Stack buttons on very small screens */
-    }
-    .list-grid {
-        grid-template-columns: 1fr; /* Stack collection items on very small screens */
     }
     .list-item-main {
         margin-bottom: 5px;
